@@ -1,541 +1,439 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full bg-slate-50">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Informasi Pengumuman Nilai Informatika - SMAN 4 Manado</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Sistem Pengumuman MID & Semester - Informatika SMAN 4 Manado</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0f7ff',
-                            100: '#e0effe',
-                            500: '#0284c7',
-                            600: '#0369a1',
-                            700: '#075985',
-                            800: '#0c4a6e',
-                            900: '#0a3651'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- JS Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
-    <!-- QRCode.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        
+        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 700; }
         @media print {
+            body * { visibility: hidden; }
+            #printable-transcript, #printable-transcript * { visibility: visible; }
+            #printable-transcript { position: absolute; left: 0; top: 0; width: 100%; }
             .no-print { display: none !important; }
-            .print-only { display: block !important; }
-            body { background: white !important; font-size: 11pt; }
-            .print-container { width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; border: none !important; }
-            @page { margin: 1.2cm; size: portrait; }
         }
-        .print-only { display: none; }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .countdown-box { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
     </style>
 </head>
-<body class="h-full flex flex-col text-slate-800 antialiased bg-slate-50">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between">
 
-    <!-- TOP NAVIGATION HEADER (NO-PRINT) -->
-    <header class="no-print bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <!-- HEADER / NAVIGATION BAR -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20 items-center">
-                <!-- Logo & Brand Info -->
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-gradient-to-tr from-brand-600 to-indigo-700 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-brand-500/20 ring-4 ring-brand-50">
-                        <i class="fa-solid fa-laptop-code text-2xl"></i>
+                <!-- Branding SMAN 4 Manado -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('portal')">
+                    <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-md shadow-blue-500/20">
+                        <i data-lucide="laptop" class="w-7 h-7"></i>
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="font-black text-lg sm:text-xl text-slate-900 tracking-tight">SMA NEGERI 4 MANADO</span>
-                            <span id="badge-sync-status" class="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200 flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Realtime
-                            </span>
+                            <span class="font-extrabold text-lg text-slate-900 tracking-tight">SMA Negeri 4 Manado</span>
+                            <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold">INFORMATIKA</span>
                         </div>
-                        <p class="text-xs text-slate-500 font-semibold">Mapel Informatika • Guru: <span class="text-brand-600 font-bold">Glendy A. Taawoeda, S.Pd</span></p>
+                        <p class="text-xs text-slate-500 font-medium">Guru Mapel: <span class="text-slate-700 font-semibold">Glendy A. Taawoeda, S.Pd</span></p>
                     </div>
                 </div>
 
-                <!-- Multi-page Views Nav Buttons -->
-                <nav class="hidden md:flex items-center gap-1 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-inner">
-                    <button onclick="navigateTo('page-siswa')" id="nav-page-siswa" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-white text-slate-900 shadow-sm">
-                        <i class="fa-solid fa-user-graduate text-brand-600"></i>
-                        <span>Portal Siswa</span>
+                <!-- Navigation Tabs -->
+                <nav class="hidden md:flex space-x-1 text-sm font-semibold">
+                    <button onclick="switchPage('portal')" id="nav-portal" class="px-4 py-2 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition flex items-center gap-2">
+                        <i data-lucide="search" class="w-4 h-4"></i> Cek Nilai Siswa
                     </button>
-                    <button onclick="navigateTo('page-dashboard')" id="nav-page-dashboard" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <span>Dashboard Admin</span>
-                    </button>
-                    <button onclick="navigateTo('page-kelola')" id="nav-page-kelola" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900">
-                        <i class="fa-solid fa-database"></i>
-                        <span>Input & Data Nilai</span>
-                    </button>
-                    <button onclick="navigateTo('page-settings')" id="nav-page-settings" class="nav-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900">
-                        <i class="fa-solid fa-gears"></i>
-                        <span>Pengaturan</span>
+                    <button onclick="switchPage('admin')" id="nav-admin" class="px-4 py-2 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition flex items-center gap-2">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Panel Admin
                     </button>
                 </nav>
 
-                <!-- Admin Auth Indicator Button -->
-                <div class="flex items-center gap-2">
-                    <button id="btn-admin-auth" onclick="handleAdminAuthToggle()" class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-900 text-white hover:bg-slate-800 shadow-sm">
-                        <i id="icon-admin-auth" class="fa-solid fa-lock text-amber-400"></i>
-                        <span id="text-admin-auth">Login Admin</span>
+                <!-- Status Koneksi Realtime -->
+                <div class="flex items-center gap-3">
+                    <div class="hidden sm:flex items-center gap-2 text-xs bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+                        <span id="sync-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="sync-text" class="text-slate-600 font-medium">Local Storage Active</span>
+                    </div>
+                    <button onclick="openPinModal()" class="md:hidden bg-slate-100 p-2 rounded-lg text-slate-700">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Mobile Submenu Bar -->
-        <div class="md:hidden flex overflow-x-auto bg-slate-100 p-2 border-t border-slate-200 text-xs font-bold gap-2">
-            <button onclick="navigateTo('page-siswa')" class="px-3 py-1.5 rounded-lg bg-white shadow text-slate-800 whitespace-nowrap">Portal Siswa</button>
-            <button onclick="navigateTo('page-dashboard')" class="px-3 py-1.5 rounded-lg text-slate-600 whitespace-nowrap">Dashboard</button>
-            <button onclick="navigateTo('page-kelola')" class="px-3 py-1.5 rounded-lg text-slate-600 whitespace-nowrap">Kelola Nilai</button>
-            <button onclick="navigateTo('page-settings')" class="px-3 py-1.5 rounded-lg text-slate-600 whitespace-nowrap">Settings</button>
+        <!-- Sub-Header Info Tahun Ajaran -->
+        <div class="bg-slate-900 text-white py-2 px-4 text-xs font-medium text-center flex justify-center items-center gap-4 flex-wrap">
+            <span>Sistem Informasi Pengumuman MID & Semester</span>
+            <span class="text-slate-500">•</span>
+            <span id="active-ta-badge" class="text-amber-300 font-bold">Tahun Ajaran 2026/2027 (Ganjil: Juli - Desember)</span>
+            <span class="text-slate-500">•</span>
+            <span id="active-mode-badge" class="bg-blue-500/30 text-blue-300 px-2 py-0.5 rounded border border-blue-400/30">Mode: Ujian MID (Nilai Murni)</span>
         </div>
     </header>
 
-    <!-- MAIN CONTENT CONTAINER FOR MULTI-PAGE SPA -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
 
-        <!-- SYSTEM BANNER ACTIVE SEMESTER & EXAM MODE -->
-        <div class="mb-6 bg-gradient-to-r from-slate-900 via-brand-900 to-slate-900 text-white p-5 rounded-3xl shadow-lg border border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-brand-500/20 border border-brand-400/30 flex items-center justify-center text-brand-300">
-                    <i class="fa-solid fa-bullhorn text-lg"></i>
-                </div>
-                <div>
-                    <span id="lbl-active-tahun" class="px-2.5 py-0.5 rounded-full bg-brand-500/20 text-brand-300 text-[10px] font-bold uppercase tracking-wider border border-brand-500/30">Tahun Ajaran 2026/2027</span>
-                    <h2 id="lbl-active-title" class="text-base sm:text-lg font-black mt-0.5">Pengumuman Nilai MID Semester (Ganjil: Juli - Desember 2026)</h2>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="text-right hidden sm:block">
-                    <div class="text-[10px] text-slate-400 font-semibold uppercase">Status Pengumuman</div>
-                    <div id="lbl-status-pengumuman" class="text-xs font-extrabold text-emerald-400">DIBUKA UNTUK UMUM</div>
-                </div>
-                <div class="px-3 py-1.5 bg-white/10 rounded-xl text-xs font-bold backdrop-blur-md border border-white/10 flex items-center gap-2">
-                    <i class="fa-solid fa-book-bookmark text-brand-400"></i>
-                    <span>Mapel: Informatika</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- ========================================================================= -->
-        <!-- PAGE 1: PORTAL SISWA (PUBLIC SEARCH & TRANSCRIPT) -->
-        <!-- ========================================================================= -->
-        <section id="page-siswa" class="page-content space-y-8">
+        <!-- ================= PAGE 1: PORTAL CEK NILAI SISWA ================= -->
+        <section id="page-portal" class="space-y-8">
             
-            <!-- SEARCH CARD -->
-            <div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200/80 p-6 sm:p-8">
-                <div class="text-center mb-6">
-                    <div class="w-14 h-14 bg-brand-50 rounded-2xl flex items-center justify-center text-brand-600 text-2xl mx-auto mb-3 shadow-inner">
-                        <i class="fa-solid fa-magnifying-glass"></i>
+            <!-- COUNTDOWN SECTION (Jika Pengumuman Ditentukan & Belum Buka) -->
+            <div id="countdown-card" class="hidden countdown-box rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden text-center border border-slate-700">
+                <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl"></div>
+                <div class="max-w-xl mx-auto space-y-4">
+                    <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                        Pengumuman Segera Dirilis
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Hitung Mundur Hasil Ujian Informatika</h2>
+                    <p class="text-slate-400 text-sm">Persiapkan diri Anda! Hasil Ujian MID/Semester Informatika SMAN 4 Manado dapat diakses dalam:</p>
+                    
+                    <!-- Timer Display -->
+                    <div class="grid grid-cols-4 gap-3 py-4 max-w-md mx-auto">
+                        <div class="bg-slate-800/80 backdrop-blur rounded-2xl p-3 border border-slate-700">
+                            <span id="timer-days" class="text-2xl sm:text-4xl font-extrabold text-blue-400 block">00</span>
+                            <span class="text-[10px] text-slate-400 uppercase font-semibold">Hari</span>
+                        </div>
+                        <div class="bg-slate-800/80 backdrop-blur rounded-2xl p-3 border border-slate-700">
+                            <span id="timer-hours" class="text-2xl sm:text-4xl font-extrabold text-blue-400 block">00</span>
+                            <span class="text-[10px] text-slate-400 uppercase font-semibold">Jam</span>
+                        </div>
+                        <div class="bg-slate-800/80 backdrop-blur rounded-2xl p-3 border border-slate-700">
+                            <span id="timer-minutes" class="text-2xl sm:text-4xl font-extrabold text-blue-400 block">00</span>
+                            <span class="text-[10px] text-slate-400 uppercase font-semibold">Menit</span>
+                        </div>
+                        <div class="bg-slate-800/80 backdrop-blur rounded-2xl p-3 border border-slate-700">
+                            <span id="timer-seconds" class="text-2xl sm:text-4xl font-extrabold text-emerald-400 block">00</span>
+                            <span class="text-[10px] text-slate-400 uppercase font-semibold">Detik</span>
+                        </div>
                     </div>
-                    <h2 class="text-2xl font-black text-slate-900 tracking-tight">Cek Hasil Nilai Informatika</h2>
-                    <p class="text-xs text-slate-500 font-medium mt-1">Masukkan Nomor Induk Siswa Nasional (NISN) dan pilih Kelas Anda untuk melihat rincian Tugas, Kuis, Catatan, Praktek, dan Ujian.</p>
+                    <p class="text-xs text-slate-500 italic">*Form pencarian akan otomatis terbuka saat hitung mundur selesai.</p>
+                </div>
+            </div>
+
+            <!-- SEARCH CARD -->
+            <div id="search-section-card" class="bg-white rounded-3xl p-6 sm:p-10 shadow-xl shadow-slate-200/50 border border-slate-200 max-w-2xl mx-auto">
+                <div class="text-center space-y-2 mb-8">
+                    <div class="inline-flex p-3 bg-blue-50 text-blue-600 rounded-2xl mb-2">
+                        <i data-lucide="graduation-cap" class="w-8 h-8"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-slate-900">Cek Hasil Ujian Informatika</h1>
+                    <p class="text-slate-500 text-sm">Pilih Kelas dan cari Nama Lengkap Anda untuk melihat transkrip nilai.</p>
                 </div>
 
-                <form id="form-cek-nilai" onsubmit="handleCekNilaiSiswa(event)" class="space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">NISN / NIPD Siswa</label>
-                            <div class="relative">
-                                <i class="fa-solid fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                <input type="text" id="search-nisn" required placeholder="Contoh: 0061234567" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition">
-                            </div>
-                        </div>
+                <form onsubmit="handleSearchSiswa(event)" class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Pilih Kelas</label>
+                        <select id="search-kelas" required class="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm font-semibold text-slate-800 bg-white">
+                            <option value="">-- Pilih Kelas Anda --</option>
+                            <optgroup label="Kelas X">
+                                <option value="X-1">Kelas X-1</option>
+                                <option value="X-2">Kelas X-2</option>
+                                <option value="X-3">Kelas X-3</option>
+                                <option value="X-4">Kelas X-4</option>
+                            </optgroup>
+                            <optgroup label="Kelas XI">
+                                <option value="XI-1">Kelas XI-1</option>
+                                <option value="XI-2">Kelas XI-2</option>
+                                <option value="XI-3">Kelas XI-3</option>
+                                <option value="XI-4">Kelas XI-4</option>
+                                <option value="XI-5">Kelas XI-5</option>
+                            </optgroup>
+                            <optgroup label="Kelas XII">
+                                <option value="XII-1">Kelas XII-1</option>
+                                <option value="XII-2">Kelas XII-2</option>
+                                <option value="XII-3">Kelas XII-3</option>
+                                <option value="XII-4">Kelas XII-4</option>
+                                <option value="XII-5">Kelas XII-5</option>
+                            </optgroup>
+                        </select>
+                    </div>
 
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Pilih Kelas</label>
-                            <div class="relative">
-                                <i class="fa-solid fa-chalkboard-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                <select id="search-kelas" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition appearance-none">
-                                    <option value="ALL">-- Semua Kelas --</option>
-                                    <optgroup label="Kelas X">
-                                        <option value="X-1">X-1</option><option value="X-2">X-2</option><option value="X-3">X-3</option><option value="X-4">X-4</option>
-                                    </optgroup>
-                                    <optgroup label="Kelas XI">
-                                        <option value="XI-1">XI-1</option><option value="XI-2">XI-2</option><option value="XI-3">XI-3</option><option value="XI-4">XI-4</option><option value="XI-5">XI-5</option>
-                                    </optgroup>
-                                    <optgroup label="Kelas XII">
-                                        <option value="XII-1">XII-1</option><option value="XII-2">XII-2</option><option value="XII-3">XII-3</option><option value="XII-4">XII-4</option><option value="XII-5">XII-5</option>
-                                    </optgroup>
-                                </select>
-                            </div>
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Nama Siswa</label>
+                        <div class="relative">
+                            <input type="text" id="search-nama" required placeholder="Masukkan Nama Lengkap / Panggilan..." autocomplete="off" class="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm font-semibold text-slate-800 placeholder-slate-400">
+                            <i data-lucide="user" class="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5"></i>
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-extrabold rounded-xl shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 transition transform active:scale-[0.99]">
-                        <i class="fa-solid fa-paper-plane"></i>
-                        <span>Lihat Transkrip Nilai Informatika</span>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition flex items-center justify-center gap-2">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                        Tampilkan Hasil Nilai
                     </button>
                 </form>
-
-                <!-- Demo Quick Fill -->
-                <div class="mt-6 pt-5 border-t border-slate-100">
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center mb-2">Atau Klik Contoh Data Siswa Ini:</p>
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <button type="button" onclick="fillQuickSearch('0065432101', 'X-1')" class="p-2.5 bg-brand-50 hover:bg-brand-100 text-brand-900 rounded-xl text-left border border-brand-200 transition">
-                            <div class="font-extrabold">Efraim Manoppo</div>
-                            <div class="text-[10px] text-brand-600 font-semibold">NISN: 0065432101 • X-1</div>
-                        </button>
-                        <button type="button" onclick="fillQuickSearch('0065432102', 'XI-1')" class="p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl text-left border border-emerald-200 transition">
-                            <div class="font-extrabold">Grasia Tumewu</div>
-                            <div class="text-[10px] text-emerald-600 font-semibold">NISN: 0065432102 • XI-1</div>
-                        </button>
-                    </div>
-                </div>
             </div>
 
-            <!-- RESULT CARD TRANSCRIPT (Hidden Initially) -->
-            <div id="result-transkrip-wrapper" class="hidden max-w-4xl mx-auto space-y-6">
-                <!-- Status Banner -->
-                <div id="res-status-banner" class="p-6 rounded-3xl text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center gap-4 text-center sm:text-left">
-                        <div id="res-status-icon-box" class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-3xl">
-                            <i id="res-status-icon" class="fa-solid fa-circle-check"></i>
-                        </div>
-                        <div>
-                            <span class="text-[11px] font-black uppercase tracking-widest opacity-80">STATUS KELULUSAN / KETUNTASAN MAPEL INFORMATIKA</span>
-                            <h2 id="res-status-text" class="text-2xl sm:text-3xl font-black">TUNTAS</h2>
-                            <p id="res-status-desc" class="text-xs opacity-90 mt-0.5">Memenuhi kriteria ketuntasan minimal (KKM: 75).</p>
-                        </div>
-                    </div>
-                    <button onclick="openModalSKL()" class="px-5 py-3 bg-white text-slate-900 hover:bg-slate-100 rounded-2xl font-black text-xs shadow-md transition flex items-center gap-2">
-                        <i class="fa-solid fa-print text-red-600 text-sm"></i>
-                        <span>Cetak Transkrip / Rapor</span>
-                    </button>
-                </div>
-
-                <!-- Detail Grade Component Card -->
-                <div class="bg-white rounded-3xl shadow-md border border-slate-200 p-6 sm:p-8 space-y-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-slate-100 gap-4">
-                        <div>
-                            <h3 id="res-nama-siswa" class="text-2xl font-black text-slate-900">Nama Siswa</h3>
-                            <div class="flex flex-wrap gap-2 mt-1 text-xs font-bold text-slate-500">
-                                <span id="res-nisn-siswa">NISN: -</span>
-                                <span>•</span>
-                                <span id="res-kelas-siswa">Kelas: -</span>
-                                <span>•</span>
-                                <span>SMA Negeri 4 Manado</span>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center sm:text-right flex items-center gap-4">
-                            <div>
-                                <div class="text-[10px] font-bold text-slate-400 uppercase">Nilai Akhir Informatika</div>
-                                <div id="res-nilai-akhir" class="text-3xl font-black text-brand-600">0.00</div>
-                            </div>
-                            <div class="w-12 h-12 bg-brand-600 text-white rounded-2xl flex items-center justify-center font-black text-xl shadow-md shadow-brand-500/20" id="res-predikat">
-                                A
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Component Scores Table -->
+            <!-- RESULT DISPLAY CARD (Hidden by Default) -->
+            <div id="result-card" class="hidden max-w-3xl mx-auto bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden">
+                <!-- Header Status Hasil -->
+                <div id="result-header" class="p-6 sm:p-8 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900">
                     <div>
-                        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-3">Rincian Komponen Nilai Mata Pelajaran Informatika</h4>
-                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
-                            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                                <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">Tugas-Tugas (20%)</div>
-                                <div id="val-tugas" class="text-xl font-black text-slate-800">0</div>
-                            </div>
-                            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                                <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">Kuis (15%)</div>
-                                <div id="val-kuis" class="text-xl font-black text-slate-800">0</div>
-                            </div>
-                            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                                <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">Catatan (10%)</div>
-                                <div id="val-catatan" class="text-xl font-black text-slate-800">0</div>
-                            </div>
-                            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                                <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">Praktek (30%)</div>
-                                <div id="val-praktek" class="text-xl font-black text-slate-800">0</div>
-                            </div>
-                            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 col-span-2 sm:col-span-1">
-                                <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">Ujian MID/Sem (25%)</div>
-                                <div id="val-ujian" class="text-xl font-black text-slate-800">0</div>
-                            </div>
+                        <span class="text-xs font-bold uppercase tracking-widest text-slate-400">SMA NEGERI 4 MANADO</span>
+                        <h2 id="res-nama" class="text-2xl font-black mt-1 text-white">NAMA SISWA</h2>
+                        <p id="res-kelas-ta" class="text-sm text-slate-300 mt-0.5">Kelas: - | Semester: Ganjil 2026/2027</p>
+                    </div>
+                    <div id="res-status-badge" class="px-4 py-2 rounded-2xl font-black text-sm uppercase tracking-wider shadow-md">
+                        TUNTAS
+                    </div>
+                </div>
+
+                <!-- Body Transkrip Nilai -->
+                <div class="p-6 sm:p-8 space-y-6">
+                    <!-- Penilaian Mode Information -->
+                    <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <div>
+                            <span class="text-xs font-bold text-slate-500 uppercase">Mata Pelajaran</span>
+                            <p class="font-extrabold text-slate-900 text-base">Informatika</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-bold text-slate-500 uppercase">Guru Pengampu</span>
+                            <p class="font-bold text-slate-800 text-sm">Glendy A. Taawoeda, S.Pd</p>
                         </div>
                     </div>
 
-                    <!-- Teacher Notes -->
-                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
-                        <div class="text-xs font-bold text-slate-700 uppercase mb-1 flex items-center gap-1.5">
-                            <i class="fa-solid fa-comment-dots text-brand-600"></i>
-                            <span>Catatan Guru Mata Pelajaran (Glendy A. Taawoeda, S.Pd):</span>
+                    <!-- Breakdown Nilai Grid -->
+                    <div id="res-breakdown-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <!-- Populated Dynamic By JS -->
+                    </div>
+
+                    <!-- Nilai Akhir Showcase -->
+                    <div class="bg-gradient-to-br from-blue-950 to-slate-900 rounded-2xl p-6 text-white flex items-center justify-between border border-blue-900/50 shadow-inner">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-blue-300">Nilai Akhir Informatika</span>
+                            <div class="flex items-baseline gap-3 mt-1">
+                                <span id="res-nilai-akhir" class="text-4xl sm:text-5xl font-black text-white">0</span>
+                                <span class="text-slate-400 text-sm">/ 100</span>
+                            </div>
+                            <p id="res-kkm-text" class="text-xs text-slate-400 mt-1">Batas Ketuntasan Minimal (KKM): <span class="font-bold text-white">75</span></p>
                         </div>
-                        <p id="res-catatan-guru" class="text-xs text-slate-600 italic">"Sangat mahir dalam pemograman dan praktek jaringan komputer."</p>
+                        <div class="text-center bg-white/10 backdrop-blur px-6 py-4 rounded-xl border border-white/10">
+                            <span class="text-[10px] font-bold text-blue-200 uppercase block">Predikat</span>
+                            <span id="res-predikat" class="text-3xl font-black text-amber-400 block mt-1">A</span>
+                        </div>
+                    </div>
+
+                    <!-- Catatan Guru -->
+                    <div class="border-l-4 border-blue-600 pl-4 py-1">
+                        <span class="text-xs font-bold text-slate-500 uppercase block">Catatan Guru Mata Pelajaran</span>
+                        <p id="res-catatan" class="text-sm font-medium text-slate-700 italic mt-0.5">"Tingkatkan terus kemampuan praktikum koding & logika pemrogramannya."</p>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100">
+                        <button onclick="printTranscript()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
+                            <i data-lucide="printer" class="w-4 h-4"></i> Cetak / Download Transkrip PDF
+                        </button>
+                        <button onclick="hideResultCard()" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition">
+                            Cari Siswa Lain
+                        </button>
                     </div>
                 </div>
             </div>
-
         </section>
 
-        <!-- ========================================================================= -->
-        <!-- PAGE 2: DASHBOARD ADMIN (STATISTICS & ANALYTICS) -->
-        <!-- ========================================================================= -->
-        <section id="page-dashboard" class="page-content hidden space-y-6">
+        <!-- ================= PAGE 2: PANEL ADMIN & MANAGEMENT ================= -->
+        <section id="page-admin" class="hidden space-y-8">
             
-            <div class="flex justify-between items-center bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <!-- Admin Header Bar -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h2 class="text-xl font-black text-slate-900">Ringkasan Statistik Nilai Informatika</h2>
-                    <p class="text-xs text-slate-500 font-medium">Monitoring ketercapaian nilai seluruh siswa SMA Negeri 4 Manado.</p>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-red-100 text-red-700 text-xs font-bold px-2.5 py-1 rounded-full">ADMIN AREA</span>
+                        <h1 class="text-xl font-bold text-slate-900">Kelola Nilai Informatika SMAN 4 Manado</h1>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">Guru Mapel: Glendy A. Taawoeda, S.Pd | Sistem Pengolahan Nilai MID & Semester</p>
                 </div>
-                <button onclick="renderDashboardCharts()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-200">
-                    <i class="fa-solid fa-arrows-rotate"></i> Refresh Analytics
+                <div class="flex items-center gap-2">
+                    <button onclick="openModalTambah()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-md transition flex items-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Data Siswa
+                    </button>
+                    <button onclick="switchAdminSubTab('settings')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2.5 rounded-xl transition" title="Pengaturan Release & Mode">
+                        <i data-lucide="settings" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sub Tabs Admin Navigation -->
+            <div class="flex border-b border-slate-200 text-sm font-bold space-x-6">
+                <button onclick="switchAdminSubTab('analytics')" id="subtab-analytics" class="py-3 text-blue-600 border-b-2 border-blue-600 flex items-center gap-2">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Ringkasan Analytics
+                </button>
+                <button onclick="switchAdminSubTab('datatable')" id="subtab-datatable" class="py-3 text-slate-500 hover:text-slate-900 flex items-center gap-2">
+                    <i data-lucide="table" class="w-4 h-4"></i> Data Nilai Siswa
+                </button>
+                <button onclick="switchAdminSubTab('settings')" id="subtab-settings" class="py-3 text-slate-500 hover:text-slate-900 flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-4 h-4"></i> Pengaturan Release & Timer
                 </button>
             </div>
 
-            <!-- Stats Grid Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl font-bold">
-                        <i class="fa-solid fa-users"></i>
+            <!-- SUB-TAB 1: ANALYTICS DASHBOARD -->
+            <div id="subview-analytics" class="space-y-6">
+                <!-- Summary Metrics -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <span class="text-xs font-bold text-slate-400 uppercase">Total Siswa Terdata</span>
+                        <div class="flex justify-between items-baseline mt-2">
+                            <span id="metric-total-siswa" class="text-3xl font-extrabold text-slate-900">0</span>
+                            <span class="text-xs bg-blue-50 text-blue-600 font-bold px-2 py-0.5 rounded">Siswa</span>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-[10px] font-bold text-slate-400 uppercase">Total Siswa Terdata</div>
-                        <div id="dash-total-siswa" class="text-2xl font-black text-slate-800">0</div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <span class="text-xs font-bold text-slate-400 uppercase">Rata-Rata Nilai Mapel</span>
+                        <div class="flex justify-between items-baseline mt-2">
+                            <span id="metric-rata-rata" class="text-3xl font-extrabold text-blue-600">0.0</span>
+                            <span class="text-xs bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded">Skala 100</span>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <span class="text-xs font-bold text-slate-400 uppercase">Tingkat Ketuntasan</span>
+                        <div class="flex justify-between items-baseline mt-2">
+                            <span id="metric-persen-tuntas" class="text-3xl font-extrabold text-emerald-600">0%</span>
+                            <span id="metric-jumlah-tuntas" class="text-xs text-emerald-600 font-bold">0 Tuntas</span>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <span class="text-xs font-bold text-slate-400 uppercase">Belum Tuntas (&lt; 75)</span>
+                        <div class="flex justify-between items-baseline mt-2">
+                            <span id="metric-belum-tuntas" class="text-3xl font-extrabold text-rose-600">0</span>
+                            <span class="text-xs bg-rose-50 text-rose-600 font-bold px-2 py-0.5 rounded">Siswa</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl font-bold">
-                        <i class="fa-solid fa-circle-check"></i>
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold text-slate-800 mb-4">Rata-rata Nilai per Kelas</h3>
+                        <div class="h-64">
+                            <canvas id="chart-kelas"></canvas>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-[10px] font-bold text-slate-400 uppercase">Siswa Tuntas (>= 75)</div>
-                        <div id="dash-total-tuntas" class="text-2xl font-black text-emerald-600">0</div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center text-xl font-bold">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                    </div>
-                    <div>
-                        <div class="text-[10px] font-bold text-slate-400 uppercase">Belum Tuntas (< 75)</div>
-                        <div id="dash-total-belum" class="text-2xl font-black text-rose-600">0</div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-xl font-bold">
-                        <i class="fa-solid fa-calculator"></i>
-                    </div>
-                    <div>
-                        <div class="text-[10px] font-bold text-slate-400 uppercase">Rata-Rata Angkatan</div>
-                        <div id="dash-avg-angkatan" class="text-2xl font-black text-brand-600">0.00</div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold text-slate-800 mb-4">Distribusi Predikat Nilai</h3>
+                        <div class="h-64">
+                            <canvas id="chart-predikat"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Charts Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider mb-4">Persentase Ketuntasan</h3>
-                    <div class="h-64 relative flex items-center justify-center">
-                        <canvas id="chart-tuntas"></canvas>
+            <!-- SUB-TAB 2: DATA TABLE SISWA -->
+            <div id="subview-datatable" class="hidden space-y-4">
+                <!-- Filter Bar -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col sm:flex-row gap-3 justify-between items-center">
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <select id="filter-kelas" onchange="renderTableSiswa()" class="px-3 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 bg-white">
+                            <option value="ALL">Semua Kelas (X, XI, XII)</option>
+                            <option value="X-1">Kelas X-1</option> <option value="X-2">Kelas X-2</option> <option value="X-3">Kelas X-3</option> <option value="X-4">Kelas X-4</option>
+                            <option value="XI-1">Kelas XI-1</option> <option value="XI-2">Kelas XI-2</option> <option value="XI-3">Kelas XI-3</option> <option value="XI-4">Kelas XI-4</option> <option value="XI-5">Kelas XI-5</option>
+                            <option value="XII-1">Kelas XII-1</option> <option value="XII-2">Kelas XII-2</option> <option value="XII-3">Kelas XII-3</option> <option value="XII-4">Kelas XII-4</option> <option value="XII-5">Kelas XII-5</option>
+                        </select>
+                        <input type="text" id="filter-search" onkeyup="renderTableSiswa()" placeholder="Cari Nama Siswa..." class="px-3 py-2 border border-slate-300 rounded-xl text-xs w-full sm:w-64">
+                    </div>
+                    <div class="text-xs text-slate-500 font-semibold">
+                        Menampilkan <span id="table-count" class="text-slate-900 font-bold">0</span> Siswa
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm lg:col-span-2">
-                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider mb-4">Rata-Rata Nilai Informatika Per Tingkat Kelas</h3>
-                    <div class="h-64 relative">
-                        <canvas id="chart-kelas"></canvas>
+                <!-- Table Container -->
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-600 font-bold uppercase border-b border-slate-200">
+                                <tr>
+                                    <th class="p-4">Nama Siswa</th>
+                                    <th class="p-4">Kelas</th>
+                                    <th class="p-4 text-center">Nilai Ujian / MID</th>
+                                    <th class="p-4 text-center">Nilai Akhir</th>
+                                    <th class="p-4 text-center">Predikat</th>
+                                    <th class="p-4 text-center">Status</th>
+                                    <th class="p-4 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body-siswa" class="divide-y divide-slate-100 font-medium text-slate-700">
+                                <!-- Populated Dynamically -->
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- ========================================================================= -->
-        <!-- PAGE 3: KELOLA DATA NILAI SISWA (CRUD) -->
-        <!-- ========================================================================= -->
-        <section id="page-kelola" class="page-content hidden space-y-6">
-            
-            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
-                    <div>
-                        <h2 class="text-xl font-black text-slate-900">Kelola Data Nilai Informatika Siswa</h2>
-                        <p class="text-xs text-slate-500 font-medium">Input, edit, dan atur kompoen penilaian seluruh kelas X, XI, dan XII.</p>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button onclick="openModalSiswa()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm">
-                            <i class="fa-solid fa-plus"></i>
-                            <span>Tambah Siswa Baru</span>
-                        </button>
-                        <button onclick="exportJSONData()" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-200">
-                            <i class="fa-solid fa-file-export"></i> Export JSON
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Filter & Search Controls -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
-                    <div class="relative">
-                        <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="admin-search-input" onkeyup="renderTableDataSiswa()" placeholder="Cari Nama / NISN Siswa..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500">
-                    </div>
-
-                    <select id="admin-filter-kelas" onchange="renderTableDataSiswa()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none">
-                        <option value="ALL">-- Filter Semua Kelas --</option>
-                        <optgroup label="Kelas X">
-                            <option value="X-1">X-1</option><option value="X-2">X-2</option><option value="X-3">X-3</option><option value="X-4">X-4</option>
-                        </optgroup>
-                        <optgroup label="Kelas XI">
-                            <option value="XI-1">XI-1</option><option value="XI-2">XI-2</option><option value="XI-3">XI-3</option><option value="XI-4">XI-4</option><option value="XI-5">XI-5</option>
-                        </optgroup>
-                        <optgroup label="Kelas XII">
-                            <option value="XII-1">XII-1</option><option value="XII-2">XII-2</option><option value="XII-3">XII-3</option><option value="XII-4">XII-4</option><option value="XII-5">XII-5</option>
-                        </optgroup>
-                    </select>
-
-                    <select id="admin-filter-status" onchange="renderTableDataSiswa()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none">
-                        <option value="ALL">-- Filter Semua Status --</option>
-                        <option value="TUNTAS">TUNTAS</option>
-                        <option value="BELUM TUNTAS">BELUM TUNTAS</option>
-                    </select>
-                </div>
-
-                <!-- Table Data -->
-                <div class="overflow-x-auto rounded-2xl border border-slate-200">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-50 text-slate-600 font-extrabold uppercase tracking-wider">
-                            <tr>
-                                <th class="p-3">NISN</th>
-                                <th class="p-3">Nama Siswa</th>
-                                <th class="p-3">Kelas</th>
-                                <th class="p-3 text-center">Tugas</th>
-                                <th class="p-3 text-center">Kuis</th>
-                                <th class="p-3 text-center">Catatan</th>
-                                <th class="p-3 text-center">Praktek</th>
-                                <th class="p-3 text-center">Ujian</th>
-                                <th class="p-3 text-center">Nilai Akhir</th>
-                                <th class="p-3 text-center">Status</th>
-                                <th class="p-3 text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tb-data-siswa" class="divide-y divide-slate-100 font-semibold">
-                            <!-- Dynamic Rows -->
-                        </tbody>
-                    </table>
                 </div>
             </div>
 
-        </section>
-
-        <!-- ========================================================================= -->
-        <!-- PAGE 4: PENGATURAN SYSTEM & MAINTENANCE -->
-        <!-- ========================================================================= -->
-        <section id="page-settings" class="page-content hidden space-y-6">
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Semester & Announcement Config -->
-                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center font-bold">
-                            <i class="fa-solid fa-sliders"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-slate-900 text-sm">Pengaturan Pengumuman & Semester</h3>
-                            <p class="text-[11px] text-slate-400">Atur periode ajaran aktif dan akses pengumuman.</p>
-                        </div>
-                    </div>
-
-                    <div class="space-y-4 pt-2 border-t border-slate-100">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Tahun Ajaran & Semester Aktif</label>
-                            <select id="cfg-semester" onchange="saveSystemSettings()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none">
-                                <option value="GANJIL">2026/2027 (Ganjil: Juli - Desember 2026)</option>
-                                <option value="GENAP">2026/2027 (Genap: Januari - Juni 2027)</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Jenis Ujian Diumumkan</label>
-                            <select id="cfg-jenis-ujian" onchange="saveSystemSettings()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none">
-                                <option value="MID">Ujian MID Semester Informatika</option>
-                                <option value="SEMESTER">Ujian Akhir Semester Informatika</option>
-                            </select>
-                        </div>
-
-                        <div class="flex items-center justify-between p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-                            <div>
-                                <div class="text-xs font-bold text-slate-800">Saklar Pengumuman Terbuka</div>
-                                <div class="text-[10px] text-slate-500">Apabila dimatikan, siswa tidak bisa mencari nilai.</div>
+            <!-- SUB-TAB 3: PENGATURAN RELEASE & TIMER -->
+            <div id="subview-settings" class="hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Mode Penilaian & Kurikulum -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                <i data-lucide="sliders" class="w-5 h-5"></i>
                             </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="cfg-status-pengumuman" onchange="saveSystemSettings()" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            <h3 class="font-bold text-slate-900">Mode Penilaian Informatika</h3>
+                        </div>
+                        <p class="text-xs text-slate-500">Tentukan tipe penilaian yang sedang berjalan saat ini.</p>
+                        
+                        <div class="space-y-3 pt-2">
+                            <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="assessmentMode" value="MID" onchange="updateAssessmentMode('MID')" class="mt-1 text-blue-600">
+                                <div>
+                                    <span class="text-xs font-bold text-slate-800 block">Mode MID Semester (Nilai Murni Ujian)</span>
+                                    <span class="text-[11px] text-slate-500">Berfokus pada 1 Nilai Ujian Murni MID. Komponen lain diabaikan.</span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="assessmentMode" value="SEMESTER" onchange="updateAssessmentMode('SEMESTER')" class="mt-1 text-blue-600">
+                                <div>
+                                    <span class="text-xs font-bold text-slate-800 block">Mode Akhir Semester (Desember 2026)</span>
+                                    <span class="text-[11px] text-slate-500">Kumpulan Nilai Lengkap (Tugas, Kuis, Catatan, Praktek, Ujian Semester).</span>
+                                </div>
                             </label>
                         </div>
                     </div>
-                </div>
 
-                <!-- Firebase Sync & Maintenance -->
-                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center font-bold">
-                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <!-- Pengaturan Jadwal Rilis & Countdown -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-amber-50 text-amber-600 rounded-lg">
+                                <i data-lucide="clock" class="w-5 h-5"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-900">Sistem Release & Countdown Pengumuman</h3>
                         </div>
-                        <div>
-                            <h3 class="font-bold text-slate-900 text-sm">Sinkronisasi Database Realtime</h3>
-                            <p class="text-[11px] text-slate-400">Database tersinkron secara otomatis antar browser.</p>
+                        <p class="text-xs text-slate-500">Atur waktu rilis pengumuman agar siswa melihat hitung mundur sebelum membuka nilai.</p>
+
+                        <div class="space-y-4 pt-2">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Status Akses Portal Siswa</label>
+                                <select id="setting-release-status" onchange="saveReleaseSettings()" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-800">
+                                    <option value="OPEN">Buka Langsung (Tanpa Timer)</option>
+                                    <option value="SCHEDULED">Jadwalkan Hitung Mundur (Countdown)</option>
+                                    <option value="LOCKED">Kunci Pengumuman Total (Maintenance/Tutup)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal & Waktu Rilis Pengumuman</label>
+                                <input type="datetime-local" id="setting-release-time" onchange="saveReleaseSettings()" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs text-slate-800">
+                            </div>
+
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
+                                <span class="font-bold text-slate-800 block">Status Terkini:</span>
+                                <p id="release-status-description">Pengumuman Terbuka untuk umum.</p>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="space-y-3 pt-2 border-t border-slate-100 text-xs font-medium">
-                        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
-                            <span>Status Modul Realtime:</span>
-                            <span class="font-bold text-emerald-600 flex items-center gap-1">
-                                <i class="fa-solid fa-circle-check"></i> Connected to Firestore
-                            </span>
-                        </div>
-
-                        <div class="pt-2">
-                            <button onclick="resetDataDefault()" class="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold transition border border-rose-200 flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-rotate-left"></i> Reset Ke Data Standard Bawaan
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Maintenance Changelog -->
-            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-brand-600"></i>
-                    <span>Log Pemeliharaan Sistem Informatika SMAN 4 Manado</span>
-                </h3>
-                <div class="space-y-3 text-xs border-l-2 border-slate-200 pl-4 py-1">
-                    <div>
-                        <div class="font-bold text-slate-800">v3.0.0 - Pembaruan Kurikulum Merdeka & Mapel Informatika</div>
-                        <div class="text-[10px] text-slate-400">Juli 2026 - Maintenance Berkala</div>
-                        <p class="text-slate-600 mt-0.5">Penyesuaian struktur kelas tanpa jurusan (X-1 s/d XII-5), bobot komponen nilai praktek & kuis, serta proteksi PIN admin 210893.</p>
-                    </div>
                 </div>
             </div>
 
@@ -543,756 +441,711 @@
 
     </main>
 
-    <!-- ========================================================================= -->
-    <!-- MODAL 1: AUTH ADMIN PIN LOCK (PIN: 210893) -->
-    <!-- ========================================================================= -->
-    <div id="modal-pin-lock" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 text-center space-y-4 border border-slate-100">
-            <div class="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-inner">
-                <i class="fa-solid fa-key"></i>
+    <!-- PRINTABLE TRANSCRIPT TEMPLATE (HIDDEN, PRINT ONLY) -->
+    <div id="printable-transcript" class="hidden p-10 font-sans">
+        <div class="text-center border-b-2 border-black pb-4 mb-6">
+            <h2 class="text-xl font-bold uppercase tracking-wider">PEMERINTAH PROVINSI SULAWESI UTARA</h2>
+            <h1 class="text-2xl font-black uppercase">SMA NEGERI 4 MANADO</h1>
+            <p class="text-xs italic">Jl. SMAN 4 Manado, Kota Manado, Sulawesi Utara • Transkrip Ujian Resmi</p>
+        </div>
+        <div class="text-center my-4">
+            <h3 class="text-lg font-bold underline uppercase">TRANSKRIP HASIL UJIAN INFORMATIKA</h3>
+            <p class="text-xs text-gray-600" id="print-ta">Tahun Ajaran 2026/2027</p>
+        </div>
+        <table class="w-full text-sm mb-6">
+            <tr><td class="font-bold py-1" width="180">Nama Siswa</td><td>: <span id="print-nama"></span></td></tr>
+            <tr><td class="font-bold py-1">Kelas</td><td>: <span id="print-kelas"></span></td></tr>
+            <tr><td class="font-bold py-1">Mata Pelajaran</td><td>: Informatika</td></tr>
+            <tr><td class="font-bold py-1">Guru Mata Pelajaran</td><td>: Glendy A. Taawoeda, S.Pd</td></tr>
+        </table>
+        <table class="w-full border-collapse border border-black text-sm mb-6">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="border border-black p-2">Komponen / Jenis Ujian</th>
+                    <th class="border border-black p-2 text-center">Nilai</th>
+                    <th class="border border-black p-2 text-center">Keterangan</th>
+                </tr>
+            </thead>
+            <tbody id="print-scores-body">
+                <!-- Dynamic Print Rows -->
+            </tbody>
+        </table>
+        <div class="flex justify-between items-end mt-12 pt-8">
+            <div class="text-center text-xs">
+                <p>Mengetahui,</p>
+                <p class="mb-16">Orang Tua / Wali Siswa</p>
+                <p class="font-bold">( .................................... )</p>
             </div>
-            <div>
-                <h3 class="text-lg font-black text-slate-900">Masukkan PIN Admin</h3>
-                <p class="text-xs text-slate-500 font-medium">Restriksi Akses Guru Mapel Informatika Glendy A. Taawoeda, S.Pd</p>
+            <div class="text-center text-xs">
+                <p>Manado, <span id="print-date"></span></p>
+                <p class="mb-16">Guru Mata Pelajaran Informatika</p>
+                <p class="font-bold underline">Glendy A. Taawoeda, S.Pd</p>
             </div>
+        </div>
+    </div>
 
-            <form onsubmit="handlePinSubmit(event)" class="space-y-3">
-                <input type="password" id="input-pin-code" maxlength="6" placeholder="******" required class="w-full text-center text-2xl tracking-[0.5em] font-black py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-brand-500">
-                <div id="pin-error-msg" class="hidden text-xs font-bold text-rose-600">PIN Rahasia Salah! Akses Ditolak.</div>
-                
+    <!-- MODAL AUTH PIN ADMIN -->
+    <div id="modal-pin" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center space-y-4 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div class="inline-flex p-3 bg-red-50 text-red-600 rounded-2xl">
+                <i data-lucide="lock" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Akses Panel Admin</h3>
+            <p class="text-xs text-slate-500">Masukkan PIN Rahasia untuk mengelola nilai siswa.</p>
+            
+            <form onsubmit="handleVerifyPin(event)" class="space-y-4">
+                <input type="password" id="input-pin" maxlength="6" autofocus placeholder="Masukkan PIN" class="w-full text-center tracking-widest text-2xl font-black py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <p id="pin-error" class="text-xs text-rose-600 font-bold hidden">PIN Salah! Silakan coba lagi.</p>
                 <div class="flex gap-2">
-                    <button type="button" onclick="closePinModal()" class="flex-1 py-2.5 bg-slate-100 text-slate-700 font-bold text-xs rounded-xl">Batal</button>
-                    <button type="submit" class="flex-1 py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl shadow">Verifikasi PIN</button>
+                    <button type="button" onclick="closePinModal()" class="w-1/2 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">Batal</button>
+                    <button type="submit" class="w-1/2 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md">Masuk</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- MODAL 2: CETAK RAPOR / TRANSKRIP NILAI INFORMATIKA -->
-    <!-- ========================================================================= -->
-    <div id="modal-skl" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden print-container flex flex-col max-h-[90vh]">
-            <!-- Header Control (No Print) -->
-            <div class="no-print p-4 bg-slate-900 text-white flex justify-between items-center">
-                <span class="font-bold text-xs uppercase tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-file-invoice text-brand-400"></i> Preview Transkrip Nilai Informatika
-                </span>
-                <div class="flex items-center gap-2">
-                    <button onclick="window.print()" class="px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow">
-                        <i class="fa-solid fa-print"></i> Cetak Dokumen
-                    </button>
-                    <button onclick="closeModalSKL()" class="w-8 h-8 bg-slate-800 hover:bg-slate-700 rounded-lg flex items-center justify-center text-slate-300">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
+    <!-- MODAL TAMBAH / EDIT SISWA -->
+    <div id="modal-siswa" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 id="modal-siswa-title" class="text-base font-bold text-slate-900">Tambah Data Siswa Baru</h3>
+                <button onclick="closeModalSiswa()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
-            <!-- Printable Sheet Body -->
-            <div class="p-8 sm:p-10 overflow-y-auto space-y-6 text-slate-900 font-serif leading-relaxed text-xs">
-                <!-- Kop Surat -->
-                <div class="flex items-center gap-4 border-b-4 border-double border-slate-900 pb-4 text-center">
-                    <div class="w-16 h-16 flex-shrink-0 flex items-center justify-center">
-                        <i class="fa-solid fa-graduation-cap text-4xl text-slate-900"></i>
-                    </div>
-                    <div class="flex-1 font-sans">
-                        <h4 class="text-[10px] uppercase tracking-widest font-bold text-slate-600">PEMERINTAH PROVINSI SULAWESI UTARA</h4>
-                        <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-wide uppercase">SMA NEGERI 4 MANADO</h2>
-                        <p class="text-[10px] text-slate-600 font-medium">Jl. A.A. Maramis, Paniki Dua, Kec. Mapanget, Kota Manado, Sulawesi Utara</p>
-                    </div>
-                </div>
-
-                <!-- Document Header -->
-                <div class="text-center font-sans space-y-0.5 my-3">
-                    <h3 class="text-sm font-extrabold uppercase underline tracking-wider">TRANSKRIP HASIL PENILAIAN MATA PELAJARAN INFORMATIKA</h3>
-                    <p id="skl-doc-subtitle" class="text-[10px] text-slate-600">Tahun Ajaran 2026/2027 - Semester Ganjil</p>
-                </div>
-
-                <!-- Student Metadata -->
-                <div class="font-sans text-xs space-y-1 pl-2">
-                    <div class="grid grid-cols-3 max-w-md">
-                        <span class="font-semibold text-slate-600">Nama Siswa</span>
-                        <span id="skl-print-nama" class="col-span-2 font-bold">: -</span>
-                    </div>
-                    <div class="grid grid-cols-3 max-w-md">
-                        <span class="font-semibold text-slate-600">NISN / NIPD</span>
-                        <span id="skl-print-nisn" class="col-span-2 font-bold">: -</span>
-                    </div>
-                    <div class="grid grid-cols-3 max-w-md">
-                        <span class="font-semibold text-slate-600">Kelas</span>
-                        <span id="skl-print-kelas" class="col-span-2 font-bold">: -</span>
-                    </div>
-                </div>
-
-                <!-- Component Grades Table -->
-                <div class="font-sans">
-                    <table class="w-full text-left text-xs border-collapse border border-slate-300">
-                        <thead class="bg-slate-100 font-bold uppercase text-[10px]">
-                            <tr>
-                                <th class="border border-slate-300 p-2">Komponen Penilaian Informatika</th>
-                                <th class="border border-slate-300 p-2 text-center">Bobot</th>
-                                <th class="border border-slate-300 p-2 text-center">Nilai</th>
-                            </tr>
-                        </thead>
-                        <tbody id="skl-print-tb" class="font-medium">
-                            <!-- Dynamic Content -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Final Grade Summary Box -->
-                <div class="font-sans bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
-                    <div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase">Nilai Akhir Informatika</div>
-                        <div id="skl-print-final" class="text-2xl font-black text-slate-900">0.00</div>
-                    </div>
-                    <div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase">Predikat</div>
-                        <div id="skl-print-predikat" class="text-2xl font-black text-brand-600">A</div>
-                    </div>
-                    <div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase">Status Ketuntasan</div>
-                        <div id="skl-print-status" class="text-sm font-black text-emerald-700 uppercase">TUNTAS</div>
-                    </div>
-                </div>
-
-                <!-- Footer Signature -->
-                <div class="font-sans flex justify-between items-end pt-4">
-                    <div class="text-center space-y-1">
-                        <div id="skl-print-qrcode" class="p-1 border border-slate-200 rounded inline-block bg-white"></div>
-                        <p class="text-[8px] text-slate-500 font-bold">QR Validasi SMAN 4 Manado</p>
-                    </div>
-
-                    <div class="text-center text-xs space-y-1">
-                        <p>Manado, <span id="skl-print-date">15 Desember 2026</span></p>
-                        <p class="font-semibold">Guru Mata Pelajaran Informatika,</p>
-                        <div class="h-12 flex items-center justify-center">
-                            <span class="text-[9px] text-slate-400 border border-slate-300 border-dashed px-2 py-0.5 rounded">[ Tanda Tangan Digital ]</span>
-                        </div>
-                        <p class="font-bold underline">Glendy A. Taawoeda, S.Pd</p>
-                        <p class="text-[10px] text-slate-500">NIP. 19890821 201503 1 002</p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL INPUT/EDIT DATA SISWA ADMIN -->
-    <div id="modal-siswa" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-xl rounded-3xl shadow-xl overflow-hidden">
-            <div class="p-5 bg-slate-900 text-white flex justify-between items-center">
-                <h3 id="modal-siswa-title" class="font-bold text-sm">Tambah Data Nilai Siswa Baru</h3>
-                <button onclick="closeModalSiswa()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <form onsubmit="handleSaveSiswaAdmin(event)" class="p-6 space-y-4">
-                <input type="hidden" id="edit-orig-nisn">
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">NISN / NIPD</label>
-                        <input type="text" id="m-nisn" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Kelas</label>
-                        <select id="m-kelas" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500">
-                            <optgroup label="Kelas X">
-                                <option value="X-1">X-1</option><option value="X-2">X-2</option><option value="X-3">X-3</option><option value="X-4">X-4</option>
-                            </optgroup>
-                            <optgroup label="Kelas XI">
-                                <option value="XI-1">XI-1</option><option value="XI-2">XI-2</option><option value="XI-3">XI-3</option><option value="XI-4">XI-4</option><option value="XI-5">XI-5</option>
-                            </optgroup>
-                            <optgroup label="Kelas XII">
-                                <option value="XII-1">XII-1</option><option value="XII-2">XII-2</option><option value="XII-3">XII-3</option><option value="XII-4">XII-4</option><option value="XII-5">XII-5</option>
-                            </optgroup>
-                        </select>
-                    </div>
+            <form onsubmit="handleSaveSiswa(event)" class="space-y-4 text-xs font-semibold">
+                <input type="hidden" id="form-id">
+                
+                <div>
+                    <label class="block text-slate-700 mb-1">Nama Lengkap Siswa</label>
+                    <input type="text" id="form-nama" required placeholder="Contoh: Christian Ronaldo" class="w-full px-3 py-2.5 rounded-xl border border-slate-300">
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Nama Lengkap Siswa</label>
-                    <input type="text" id="m-nama" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-slate-700 mb-1">Kelas</label>
+                    <select id="form-kelas" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white">
+                        <option value="X-1">X-1</option><option value="X-2">X-2</option><option value="X-3">X-3</option><option value="X-4">X-4</option>
+                        <option value="XI-1">XI-1</option><option value="XI-2">XI-2</option><option value="XI-3">XI-3</option><option value="XI-4">XI-4</option><option value="XI-5">XI-5</option>
+                        <option value="XII-1">XII-1</option><option value="XII-2">XII-2</option><option value="XII-3">XII-3</option><option value="XII-4">XII-4</option><option value="XII-5">XII-5</option>
+                    </select>
                 </div>
 
-                <!-- Component Scores Inputs -->
-                <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-                    <div class="text-[11px] font-black text-slate-700 uppercase">Input Komponen Nilai Informatika:</div>
-                    <div class="grid grid-cols-3 gap-3">
+                <!-- Input Nilai Ujian MID / Murni -->
+                <div class="bg-blue-50 p-4 rounded-2xl border border-blue-200 space-y-2">
+                    <span class="text-blue-800 font-bold block text-xs">Nilai Ujian Murni (MID)</span>
+                    <input type="number" id="form-nilai-ujian" min="0" max="100" required placeholder="0 - 100" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-bold">
+                </div>
+
+                <!-- Input Nilai Tambahan (Hanya Digunakan Pada Mode Semester) -->
+                <div id="form-additional-scores" class="space-y-3 pt-2 border-t border-slate-100">
+                    <span class="text-slate-500 font-bold block text-[11px] uppercase">Komponen Tambahan (Untuk Akhir Semester)</span>
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1">Tugas (20%)</label>
-                            <input type="number" id="m-tugas" min="0" max="100" required class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold">
+                            <label class="block text-slate-600 mb-1">Nilai Tugas</label>
+                            <input type="number" id="form-nilai-tugas" min="0" max="100" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-300">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1">Kuis (15%)</label>
-                            <input type="number" id="m-kuis" min="0" max="100" required class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold">
+                            <label class="block text-slate-600 mb-1">Nilai Kuis</label>
+                            <input type="number" id="form-nilai-kuis" min="0" max="100" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-300">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1">Catatan (10%)</label>
-                            <input type="number" id="m-catatan" min="0" max="100" required class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold">
+                            <label class="block text-slate-600 mb-1">Nilai Catatan</label>
+                            <input type="number" id="form-nilai-catatan" min="0" max="100" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-300">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1">Praktek (30%)</label>
-                            <input type="number" id="m-praktek" min="0" max="100" required class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold">
-                        </div>
-                        <div class="col-span-2">
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1">Ujian MID / Semester (25%)</label>
-                            <input type="number" id="m-ujian" min="0" max="100" required class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold">
+                            <label class="block text-slate-600 mb-1">Nilai Praktek (+)</label>
+                            <input type="number" id="form-nilai-praktek" min="0" max="100" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-300">
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Catatan Guru Mapel</label>
-                    <textarea id="m-catatanguru" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                    <label class="block text-slate-700 mb-1">Catatan Guru (Opsional)</label>
+                    <textarea id="form-catatan" rows="2" placeholder="Catatan evaluasi belajar siswa..." class="w-full px-3 py-2 rounded-xl border border-slate-300"></textarea>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeModalSiswa()" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl text-xs">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-brand-600 text-white font-bold rounded-xl text-xs">Simpan Data</button>
-                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition shadow-md">Simpan Data Siswa</button>
             </form>
         </div>
     </div>
 
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 no-print">
+        <p>© 2026 SMA Negeri 4 Manado • Mata Pelajaran Informatika</p>
+        <p class="mt-1 font-medium text-slate-400">Diampu oleh Glendy A. Taawoeda, S.Pd</p>
+    </footer>
 
-    <!-- ========================================================================= -->
-    <!-- JAVASCRIPT APPLICATION CONTROLLER -->
-    <!-- ========================================================================= -->
+    <!-- LOGIC JAVASCRIPT & DATABASE SYSTEM -->
     <script>
-        // DEFAULT INFORMATIKA STUDENT DATASET
-        const DEFAULT_STUDENTS = [
-            {
-                nisn: "0065432101",
-                nama: "Efraim Manoppo",
-                kelas: "X-1",
-                tugas: 88,
-                kuis: 85,
-                catatan: 90,
-                praktek: 92,
-                ujian: 86,
-                catatan_guru: "Memiliki keahlian tinggi dalam praktek koding HTML & CSS."
-            },
-            {
-                nisn: "0065432102",
-                nama: "Grasia Tumewu",
-                kelas: "XI-1",
-                tugas: 90,
-                kuis: 92,
-                catatan: 95,
-                praktek: 94,
-                ujian: 91,
-                catatan_guru: "Sangat baik dalam pemikiran komputasional dan analisis algoritma."
-            },
-            {
-                nisn: "0065432103",
-                nama: "Christian Pangemanan",
-                kelas: "XII-1",
-                tugas: 70,
-                kuis: 65,
-                catatan: 75,
-                praktek: 72,
-                ujian: 68,
-                catatan_guru: "Perlu meningkatkan kehadiran pada modul latihan praktek jaringan."
-            },
-            {
-                nisn: "0065432104",
-                nama: "Nathania Wowor",
-                kelas: "X-2",
-                tugas: 85,
-                kuis: 80,
-                catatan: 88,
-                praktek: 86,
-                ujian: 82,
-                catatan_guru: "Aktif dan terampil dalam pengolahan data spreadsheet."
-            }
+        // CONFIG & CONSTANTS
+        const ADMIN_PIN = "210893";
+        const KKM_SCORE = 75;
+
+        // SYSTEM STATE
+        let appState = {
+            assessmentMode: 'MID', // 'MID' or 'SEMESTER'
+            releaseStatus: 'OPEN', // 'OPEN', 'SCHEDULED', 'LOCKED'
+            releaseTime: '2026-10-01T08:00',
+            currentPage: 'portal',
+            adminSubTab: 'analytics',
+            isAdminAuthenticated: false
+        };
+
+        // DUMMY INITIAL DATA
+        let siswaDatabase = [
+            { id: "1", nama: "Gabriel Mangindaan", kelas: "X-1", nilaiUjian: 88, nilaiTugas: 85, nilaiKuis: 90, nilaiCatatan: 80, nilaiPraktek: 92, catatan: "Sangat baik dalam pemrograman dasar dasar Python." },
+            { id: "2", nama: "Siti Rahmawati", kelas: "X-1", nilaiUjian: 70, nilaiTugas: 75, nilaiKuis: 68, nilaiCatatan: 85, nilaiPraktek: 72, catatan: "Perbanyak latihan praktek laboratorium." },
+            { id: "3", nama: "Michaela Wowor", kelas: "XI-1", nilaiUjian: 95, nilaiTugas: 92, nilaiKuis: 96, nilaiCatatan: 90, nilaiPraktek: 98, catatan: "Pertahankan prestasi luar biasa di bidang algoritma!" },
+            { id: "4", nama: "Daniel Sondakh", kelas: "XII-1", nilaiUjian: 62, nilaiTugas: 65, nilaiKuis: 70, nilaiCatatan: 75, nilaiPraktek: 60, catatan: "Harap menghubungi Pak Glendy untuk jadwal remedial." }
         ];
 
-        // GLOBAL APP STATE
-        let appState = {
-            students: [],
-            isAdminLoggedIn: false,
-            adminPin: "210893",
-            activePage: 'page-siswa',
-            activeStudent: null,
-            settings: {
-                semester: "GANJIL",
-                jenisUjian: "MID",
-                isPengumumanOpen: true
-            }
+        // FIREBASE SETUP (FALLBACK TO LOCAL STORAGE DEFAULT)
+        let useFirebase = false;
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
-        const jsConfetti = new JSConfetti();
-        let chartTuntasInstance = null;
-        let chartKelasInstance = null;
-
-        // CALCULATE FINAL GRADE & PREDIKAT
-        function computeGrade(s) {
-            const finalScore = (s.tugas * 0.20) + (s.kuis * 0.15) + (s.catatan * 0.10) + (s.praktek * 0.30) + (s.ujian * 0.25);
-            const isTuntas = finalScore >= 75;
-            let predikat = 'D';
-            if (finalScore >= 88) predikat = 'A';
-            else if (finalScore >= 78) predikat = 'B';
-            else if (finalScore >= 75) predikat = 'C';
-
-            return {
-                finalScore: parseFloat(finalScore.toFixed(2)),
-                isTuntas: isTuntas,
-                statusText: isTuntas ? 'TUNTAS' : 'BELUM TUNTAS',
-                predikat: predikat
-            };
-        }
+        let db = null;
 
         // INITIALIZATION
-        window.onload = function() {
-            loadState();
-            renderTableDataSiswa();
-            initCharts();
-            updateSettingsUI();
-        };
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadStateFromStorage();
+            initDatabase();
+            startReleaseTimer();
+            renderAnalytics();
+            renderTableSiswa();
+        });
 
-        function loadState() {
-            const stored = localStorage.getItem('sman4_informatika_db');
-            if (stored) {
+        // LOCAL STORAGE & FIREBASE CONTROLLER
+        function initDatabase() {
+            if (useFirebase && typeof firebase !== 'undefined') {
                 try {
-                    const parsed = JSON.parse(stored);
-                    appState.students = parsed.students || DEFAULT_STUDENTS;
-                    if (parsed.settings) appState.settings = parsed.settings;
-                } catch(e) { appState.students = DEFAULT_STUDENTS; }
+                    firebase.initializeApp(firebaseConfig);
+                    db = firebase.firestore();
+                    document.getElementById('sync-indicator').className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+                    document.getElementById('sync-text').innerText = 'Firebase Realtime Active';
+                    
+                    db.collection("siswa_informatika").onSnapshot((snapshot) => {
+                        siswaDatabase = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        renderAnalytics();
+                        renderTableSiswa();
+                    });
+                } catch(e) {
+                    console.log('Firebase init error, fallback to LocalStorage');
+                    loadLocalSiswaData();
+                }
             } else {
-                appState.students = DEFAULT_STUDENTS;
-                saveState();
+                loadLocalSiswaData();
             }
         }
 
-        function saveState() {
-            localStorage.setItem('sman4_informatika_db', JSON.stringify({
-                students: appState.students,
-                settings: appState.settings
-            }));
-            renderTableDataSiswa();
-            updateDashboardStats();
+        function loadLocalSiswaData() {
+            const saved = localStorage.getItem('sman4_siswa_db');
+            if (saved) {
+                siswaDatabase = JSON.parse(saved);
+            } else {
+                saveLocalSiswaData();
+            }
         }
 
-        // MULTI-PAGE NAVIGATION CONTROLLER
-        function navigateTo(pageId) {
-            // Guard admin pages if not authenticated
-            if ((pageId === 'page-kelola' || pageId === 'page-settings') && !appState.isAdminLoggedIn) {
-                openPinModal(pageId);
+        function saveLocalSiswaData() {
+            localStorage.setItem('sman4_siswa_db', JSON.stringify(siswaDatabase));
+            renderAnalytics();
+            renderTableSiswa();
+        }
+
+        function loadStateFromStorage() {
+            const savedState = localStorage.getItem('sman4_app_state');
+            if (savedState) {
+                appState = { ...appState, ...JSON.parse(savedState) };
+            }
+            updateModeBadges();
+            
+            // Sync setting inputs
+            document.getElementById('setting-release-status').value = appState.releaseStatus;
+            document.getElementById('setting-release-time').value = appState.releaseTime;
+            
+            const modeRadios = document.getElementsByName('assessmentMode');
+            modeRadios.forEach(r => { if(r.value === appState.assessmentMode) r.checked = true; });
+        }
+
+        function saveAppState() {
+            localStorage.setItem('sman4_app_state', JSON.stringify(appState));
+            updateModeBadges();
+        }
+
+        function updateModeBadges() {
+            document.getElementById('active-mode-badge').innerText = appState.assessmentMode === 'MID' 
+                ? 'Mode: Ujian MID (Nilai Murni)' 
+                : 'Mode: Akhir Semester (Komplit)';
+        }
+
+        // CALCULATIONS & FORMULAS
+        function calculateFinalScore(siswa) {
+            if (appState.assessmentMode === 'MID') {
+                return Math.round(siswa.nilaiUjian || 0);
+            } else {
+                // Formula Semester: Tugas 20%, Kuis 15%, Catatan 10%, Praktek 30%, Ujian 25%
+                const tugas = (siswa.nilaiTugas || 0) * 0.20;
+                const kuis = (siswa.nilaiKuis || 0) * 0.15;
+                const catatan = (siswa.nilaiCatatan || 0) * 0.10;
+                const praktek = (siswa.nilaiPraktek || 0) * 0.30;
+                const ujian = (siswa.nilaiUjian || 0) * 0.25;
+                return Math.round(tugas + kuis + catatan + praktek + ujian);
+            }
+        }
+
+        function getPredikat(score) {
+            if (score >= 90) return 'A';
+            if (score >= 80) return 'B';
+            if (score >= 75) return 'C';
+            return 'D';
+        }
+
+        // NAVIGATION CONTROLLER
+        function switchPage(page) {
+            if (page === 'admin' && !appState.isAdminAuthenticated) {
+                openPinModal();
                 return;
             }
 
-            appState.activePage = pageId;
-            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
-            document.getElementById(pageId).classList.remove('hidden');
+            appState.currentPage = page;
+            document.getElementById('page-portal').classList.toggle('hidden', page !== 'portal');
+            document.getElementById('page-admin').classList.toggle('hidden', page !== 'admin');
 
-            // Nav Bar Styling Update
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.className = "nav-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900";
+            document.getElementById('nav-portal').className = page === 'portal' ? 'px-4 py-2 rounded-lg bg-blue-50 text-blue-600 font-bold flex items-center gap-2' : 'px-4 py-2 rounded-lg text-slate-600 hover:text-blue-600 flex items-center gap-2';
+            document.getElementById('nav-admin').className = page === 'admin' ? 'px-4 py-2 rounded-lg bg-blue-50 text-blue-600 font-bold flex items-center gap-2' : 'px-4 py-2 rounded-lg text-slate-600 hover:text-blue-600 flex items-center gap-2';
+        }
+
+        function switchAdminSubTab(subTab) {
+            appState.adminSubTab = subTab;
+            document.getElementById('subview-analytics').classList.toggle('hidden', subTab !== 'analytics');
+            document.getElementById('subview-datatable').classList.toggle('hidden', subTab !== 'datatable');
+            document.getElementById('subview-settings').classList.toggle('hidden', subTab !== 'settings');
+
+            ['analytics', 'datatable', 'settings'].forEach(tab => {
+                const btn = document.getElementById(`subtab-${tab}`);
+                if (tab === subTab) {
+                    btn.className = 'py-3 text-blue-600 border-b-2 border-blue-600 flex items-center gap-2 font-bold';
+                } else {
+                    btn.className = 'py-3 text-slate-500 hover:text-slate-900 flex items-center gap-2 font-semibold';
+                }
             });
-            const activeBtn = document.getElementById(`nav-${pageId}`);
-            if (activeBtn) {
-                activeBtn.className = "nav-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-white text-slate-900 shadow-sm";
-            }
-
-            if (pageId === 'page-dashboard') renderDashboardCharts();
         }
 
-        // ADMIN PIN SECURITY (PIN: 210893)
-        let pendingTargetPage = null;
-
-        function handleAdminAuthToggle() {
-            if (appState.isAdminLoggedIn) {
-                appState.isAdminLoggedIn = false;
-                document.getElementById('icon-admin-auth').className = "fa-solid fa-lock text-amber-400";
-                document.getElementById('text-admin-auth').innerText = "Login Admin";
-                navigateTo('page-siswa');
-            } else {
-                openPinModal('page-dashboard');
-            }
-        }
-
-        function openPinModal(targetPage) {
-            pendingTargetPage = targetPage;
-            document.getElementById('input-pin-code').value = '';
-            document.getElementById('pin-error-msg').classList.add('hidden');
-            document.getElementById('modal-pin-lock').classList.remove('hidden');
+        // AUTH PIN SYSTEM
+        function openPinModal() {
+            document.getElementById('modal-pin').classList.remove('hidden');
+            document.getElementById('input-pin').value = '';
+            document.getElementById('pin-error').classList.add('hidden');
         }
 
         function closePinModal() {
-            document.getElementById('modal-pin-lock').classList.add('hidden');
+            document.getElementById('modal-pin').classList.add('hidden');
         }
 
-        function handlePinSubmit(e) {
+        function handleVerifyPin(e) {
             e.preventDefault();
-            const pin = document.getElementById('input-pin-code').value;
-            if (pin === appState.adminPin) {
-                appState.isAdminLoggedIn = true;
-                document.getElementById('icon-admin-auth').className = "fa-solid fa-lock-open text-emerald-400";
-                document.getElementById('text-admin-auth').innerText = "Admin Active";
+            const pin = document.getElementById('input-pin').value;
+            if (pin === ADMIN_PIN) {
+                appState.isAdminAuthenticated = true;
                 closePinModal();
-                if (pendingTargetPage) navigateTo(pendingTargetPage);
+                switchPage('admin');
             } else {
-                document.getElementById('pin-error-msg').classList.remove('hidden');
+                document.getElementById('pin-error').classList.remove('hidden');
             }
         }
 
-        // PORTAL SISWA SEARCH & TRANSCRIPT
-        function fillQuickSearch(nisn, kelas) {
-            document.getElementById('search-nisn').value = nisn;
-            document.getElementById('search-kelas').value = kelas;
-        }
-
-        function handleCekNilaiSiswa(e) {
+        // PORTAL SEARCH SISWA
+        function handleSearchSiswa(e) {
             e.preventDefault();
-            if (!appState.settings.isPengumumanOpen) {
-                alert('Pengumuman nilai Informatika saat ini sedang ditutup oleh Guru Mata Pelajaran.');
-                return;
-            }
-
-            const nisn = document.getElementById('search-nisn').value.trim();
             const kelas = document.getElementById('search-kelas').value;
+            const namaQuery = document.getElementById('search-nama').value.trim().toLowerCase();
 
-            const student = appState.students.find(s => s.nisn === nisn && (kelas === 'ALL' || s.kelas === kelas));
+            const found = siswaDatabase.find(s => 
+                s.kelas === kelas && s.nama.toLowerCase().includes(namaQuery)
+            );
 
-            if (!student) {
-                alert('Data siswa dengan NISN dan Kelas tersebut tidak ditemukan. Silakan periksa kembali data Anda.');
-                document.getElementById('result-transkrip-wrapper').classList.add('hidden');
+            if (!found) {
+                alert(`Data siswa dengan nama "${document.getElementById('search-nama').value}" di kelas ${kelas} tidak ditemukan.`);
                 return;
             }
 
-            appState.activeStudent = student;
-            displayStudentTranscript(student);
-            const wrapper = document.getElementById('result-transkrip-wrapper');
-            wrapper.classList.remove('hidden');
-            wrapper.scrollIntoView({ behavior: 'smooth' });
+            renderSiswaResult(found);
         }
 
-        function displayStudentTranscript(student) {
-            const calc = computeGrade(student);
+        function renderSiswaResult(siswa) {
+            const finalScore = calculateFinalScore(siswa);
+            const isTuntas = finalScore >= KKM_SCORE;
+            const predikat = getPredikat(finalScore);
 
-            document.getElementById('res-nama-siswa').innerText = student.nama;
-            document.getElementById('res-nisn-siswa').innerText = `NISN: ${student.nisn}`;
-            document.getElementById('res-kelas-siswa').innerText = `Kelas: ${student.kelas}`;
-            document.getElementById('res-nilai-akhir').innerText = calc.finalScore.toFixed(2);
-            document.getElementById('res-predikat').innerText = calc.predikat;
-            document.getElementById('res-catatan-guru').innerText = `"${student.catatan_guru || 'Selalu tingkatkan kemampuan teknologi dan koding Anda.'}"`;
-
-            document.getElementById('val-tugas').innerText = student.tugas;
-            document.getElementById('val-kuis').innerText = student.kuis;
-            document.getElementById('val-catatan').innerText = student.catatan;
-            document.getElementById('val-praktek').innerText = student.praktek;
-            document.getElementById('val-ujian').innerText = student.ujian;
-
-            const banner = document.getElementById('res-status-banner');
-            const icon = document.getElementById('res-status-icon');
-            const statusText = document.getElementById('res-status-text');
-
-            if (calc.isTuntas) {
-                banner.className = "p-6 rounded-3xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4";
-                icon.className = "fa-solid fa-graduation-cap";
-                statusText.innerText = "SELAMAT! DITATAP TUNTAS";
-                
-                jsConfetti.addConfetti({
-                    emojis: ['💻', '🎓', '✨', '⚡'],
-                    confettiNumber: 40,
-                });
+            document.getElementById('res-nama').innerText = siswa.nama;
+            document.getElementById('res-kelas-ta').innerText = `Kelas: ${siswa.kelas} | Semester Ganjil 2026/2027`;
+            
+            // Status Badge
+            const badge = document.getElementById('res-status-badge');
+            if (isTuntas) {
+                badge.innerText = "TUNTAS";
+                badge.className = "px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider bg-emerald-500 text-white shadow-lg shadow-emerald-500/30";
             } else {
-                banner.className = "p-6 rounded-3xl bg-gradient-to-r from-rose-600 to-red-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4";
-                icon.className = "fa-solid fa-circle-exclamation";
-                statusText.innerText = "BELUM TUNTAS (MEMERLUKAN REMIDI)";
+                badge.innerText = "BELUM TUNTAS";
+                badge.className = "px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-wider bg-rose-500 text-white shadow-lg shadow-rose-500/30";
+            }
+
+            // Breakdown Grid Setup based on Mode
+            const grid = document.getElementById('res-breakdown-grid');
+            if (appState.assessmentMode === 'MID') {
+                grid.className = "grid grid-cols-1 gap-4";
+                grid.innerHTML = `
+                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-bold text-blue-600 uppercase block">Nilai Ujian Murni (MID)</span>
+                            <span class="text-2xl font-black text-slate-900">${siswa.nilaiUjian || 0}</span>
+                        </div>
+                        <i data-lucide="award" class="w-8 h-8 text-blue-500"></i>
+                    </div>
+                `;
+            } else {
+                grid.className = "grid grid-cols-2 sm:grid-cols-3 gap-3";
+                grid.innerHTML = `
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Tugas (20%)</span>
+                        <span class="text-lg font-black text-slate-800">${siswa.nilaiTugas || 0}</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Kuis (15%)</span>
+                        <span class="text-lg font-black text-slate-800">${siswa.nilaiKuis || 0}</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Catatan (10%)</span>
+                        <span class="text-lg font-black text-slate-800">${siswa.nilaiCatatan || 0}</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Praktek (30%)</span>
+                        <span class="text-lg font-black text-slate-800">${siswa.nilaiPraktek || 0}</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 col-span-2 sm:col-span-1">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Ujian Semester (25%)</span>
+                        <span class="text-lg font-black text-slate-800">${siswa.nilaiUjian || 0}</span>
+                    </div>
+                `;
+            }
+
+            document.getElementById('res-nilai-akhir').innerText = finalScore;
+            document.getElementById('res-predikat').innerText = predikat;
+            document.getElementById('res-catatan').innerText = `"${siswa.catatan || 'Terus pertahankan semangat belajarnya!'}"`;
+
+            document.getElementById('search-section-card').classList.add('hidden');
+            document.getElementById('result-card').classList.remove('hidden');
+
+            lucide.createIcons();
+
+            // Fire Confetti if Tuntas
+            if (isTuntas) {
+                const jsConfetti = new JSConfetti();
+                jsConfetti.addConfetti({ confettiRadius: 6, confettiNumber: 100 });
+            }
+
+            // Prepare Printable View
+            setupPrintableData(siswa, finalScore);
+        }
+
+        function hideResultCard() {
+            document.getElementById('result-card').classList.add('hidden');
+            document.getElementById('search-section-card').classList.remove('hidden');
+        }
+
+        // PRINT / PDF TRANSCRIPT GENERATOR
+        function setupPrintableData(siswa, finalScore) {
+            document.getElementById('print-nama').innerText = siswa.nama;
+            document.getElementById('print-kelas').innerText = siswa.kelas;
+            document.getElementById('print-date').innerText = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            const body = document.getElementById('print-scores-body');
+            if (appState.assessmentMode === 'MID') {
+                body.innerHTML = `
+                    <tr>
+                        <td class="border border-black p-2 font-semibold">Nilai Ujian Murni MID Informatika</td>
+                        <td class="border border-black p-2 text-center font-bold">${siswa.nilaiUjian || 0}</td>
+                        <td class="border border-black p-2 text-center font-bold">${finalScore >= KKM_SCORE ? 'TUNTAS' : 'BELUM TUNTAS'}</td>
+                    </tr>
+                `;
+            } else {
+                body.innerHTML = `
+                    <tr><td class="border border-black p-2">Tugas-Tugas</td><td class="border border-black p-2 text-center">${siswa.nilaiTugas||0}</td><td class="border border-black p-2 text-center">Bobot 20%</td></tr>
+                    <tr><td class="border border-black p-2">Kuis</td><td class="border border-black p-2 text-center">${siswa.nilaiKuis||0}</td><td class="border border-black p-2 text-center">Bobot 15%</td></tr>
+                    <tr><td class="border border-black p-2">Catatan</td><td class="border border-black p-2 text-center">${siswa.nilaiCatatan||0}</td><td class="border border-black p-2 text-center">Bobot 10%</td></tr>
+                    <tr><td class="border border-black p-2">Praktek Koding/Lab</td><td class="border border-black p-2 text-center">${siswa.nilaiPraktek||0}</td><td class="border border-black p-2 text-center">Bobot 30%</td></tr>
+                    <tr><td class="border border-black p-2">Ujian Akhir Semester</td><td class="border border-black p-2 text-center">${siswa.nilaiUjian||0}</td><td class="border border-black p-2 text-center">Bobot 25%</td></tr>
+                    <tr class="font-bold bg-gray-100">
+                        <td class="border border-black p-2">NILAI AKHIR MATEMATIKA / INFORMATIKA</td>
+                        <td class="border border-black p-2 text-center">${finalScore}</td>
+                        <td class="border border-black p-2 text-center">${finalScore >= KKM_SCORE ? 'TUNTAS' : 'BELUM TUNTAS'}</td>
+                    </tr>
+                `;
             }
         }
 
-        // PRINT TRANSCRIPT MODAL
-        function openModalSKL() {
-            const s = appState.activeStudent;
-            if (!s) return;
-            const calc = computeGrade(s);
-
-            document.getElementById('skl-print-nama').innerText = `: ${s.nama}`;
-            document.getElementById('skl-print-nisn').innerText = `: ${s.nisn}`;
-            document.getElementById('skl-print-kelas').innerText = `: ${s.kelas}`;
-            document.getElementById('skl-print-final').innerText = calc.finalScore.toFixed(2);
-            document.getElementById('skl-print-predikat').innerText = calc.predikat;
-            document.getElementById('skl-print-status').innerText = calc.statusText;
-
-            const tbody = document.getElementById('skl-print-tb');
-            tbody.innerHTML = `
-                <tr><td class="border border-slate-300 p-2">Nilai Tugas-Tugas (+)</td><td class="border border-slate-300 p-2 text-center">20%</td><td class="border border-slate-300 p-2 text-center font-bold">${s.tugas}</td></tr>
-                <tr><td class="border border-slate-300 p-2">Nilai Kuis Informatika</td><td class="border border-slate-300 p-2 text-center">15%</td><td class="border border-slate-300 p-2 text-center font-bold">${s.kuis}</td></tr>
-                <tr><td class="border border-slate-300 p-2">Nilai Catatan & Kerapihan Modul</td><td class="border border-slate-300 p-2 text-center">10%</td><td class="border border-slate-300 p-2 text-center font-bold">${s.catatan}</td></tr>
-                <tr><td class="border border-slate-300 p-2">Nilai Praktek Laboratorium (+)</td><td class="border border-slate-300 p-2 text-center">30%</td><td class="border border-slate-300 p-2 text-center font-bold">${s.praktek}</td></tr>
-                <tr><td class="border border-slate-300 p-2">Nilai Ujian Ujian MID/Semester</td><td class="border border-slate-300 p-2 text-center">25%</td><td class="border border-slate-300 p-2 text-center font-bold">${s.ujian}</td></tr>
-            `;
-
-            const qrContainer = document.getElementById('skl-print-qrcode');
-            qrContainer.innerHTML = '';
-            new QRCode(qrContainer, {
-                text: `VALID-INFORMATIKA-SMAN4MANADO-${s.nisn}-${s.nama.replace(/\s+/g,'')}`,
-                width: 56,
-                height: 56
-            });
-
-            document.getElementById('modal-skl').classList.remove('hidden');
+        function printTranscript() {
+            window.print();
         }
 
-        function closeModalSKL() {
-            document.getElementById('modal-skl').classList.add('hidden');
+        // COUNTDOWN TIMER SYSTEM
+        function startReleaseTimer() {
+            setInterval(() => {
+                const searchCard = document.getElementById('search-section-card');
+                const countdownCard = document.getElementById('countdown-card');
+                
+                if (appState.releaseStatus === 'LOCKED') {
+                    searchCard.classList.add('hidden');
+                    countdownCard.classList.add('hidden');
+                    return;
+                }
+
+                if (appState.releaseStatus === 'OPEN') {
+                    searchCard.classList.remove('hidden');
+                    countdownCard.classList.add('hidden');
+                    return;
+                }
+
+                // SCHEDULED COUNTDOWN LOGIC
+                const targetTime = new Date(appState.releaseTime).getTime();
+                const now = new Date().getTime();
+                const diff = targetTime - now;
+
+                if (diff <= 0) {
+                    // Time Has Arrived -> Auto Open!
+                    searchCard.classList.remove('hidden');
+                    countdownCard.classList.add('hidden');
+                    document.getElementById('release-status-description').innerText = "Waktu pengumuman telah tiba! Portal dibuka secara otomatis.";
+                } else {
+                    searchCard.classList.add('hidden');
+                    countdownCard.classList.remove('hidden');
+
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                    document.getElementById('timer-days').innerText = String(days).padStart(2, '0');
+                    document.getElementById('timer-hours').innerText = String(hours).padStart(2, '0');
+                    document.getElementById('timer-minutes').innerText = String(minutes).padStart(2, '0');
+                    document.getElementById('timer-seconds').innerText = String(seconds).padStart(2, '0');
+
+                    document.getElementById('release-status-description').innerText = `Pengumuman dijadwalkan pada ${new Date(appState.releaseTime).toLocaleString('id-ID')}.`;
+                }
+            }, 1000);
         }
 
-        // KELOLA DATA SISWA (ADMIN CRUD)
-        function renderTableDataSiswa() {
-            const search = document.getElementById('admin-search-input')?.value.toLowerCase() || '';
-            const filterKelas = document.getElementById('admin-filter-kelas')?.value || 'ALL';
-            const filterStatus = document.getElementById('admin-filter-status')?.value || 'ALL';
+        function saveReleaseSettings() {
+            appState.releaseStatus = document.getElementById('setting-release-status').value;
+            appState.releaseTime = document.getElementById('setting-release-time').value;
+            saveAppState();
+        }
 
-            const filtered = appState.students.filter(s => {
-                const calc = computeGrade(s);
-                const matchSearch = s.nama.toLowerCase().includes(search) || s.nisn.includes(search);
-                const matchKelas = filterKelas === 'ALL' || s.kelas === filterKelas;
-                const matchStatus = filterStatus === 'ALL' || calc.statusText === filterStatus;
-                return matchSearch && matchKelas && matchStatus;
-            });
+        function updateAssessmentMode(mode) {
+            appState.assessmentMode = mode;
+            saveAppState();
+            renderAnalytics();
+            renderTableSiswa();
+        }
 
-            const tbody = document.getElementById('tb-data-siswa');
-            if (!tbody) return;
+        // ADMIN TABLE & DATA MANAGEMENT
+        function renderTableSiswa() {
+            const filterKelas = document.getElementById('filter-kelas').value;
+            const filterQuery = document.getElementById('filter-search').value.toLowerCase();
+
+            const tbody = document.getElementById('table-body-siswa');
             tbody.innerHTML = '';
 
+            const filtered = siswaDatabase.filter(s => {
+                const matchKelas = filterKelas === 'ALL' || s.kelas === filterKelas;
+                const matchName = s.nama.toLowerCase().includes(filterQuery);
+                return matchKelas && matchName;
+            });
+
+            document.getElementById('table-count').innerText = filtered.length;
+
             filtered.forEach(s => {
-                const calc = computeGrade(s);
+                const finalScore = calculateFinalScore(s);
+                const isTuntas = finalScore >= KKM_SCORE;
+
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                tr.className = "hover:bg-slate-50 transition";
                 tr.innerHTML = `
-                    <td class="p-3 font-bold text-slate-800">${s.nisn}</td>
-                    <td class="p-3 font-semibold text-slate-700">${s.nama}</td>
-                    <td class="p-3 font-bold text-brand-700">${s.kelas}</td>
-                    <td class="p-3 text-center">${s.tugas}</td>
-                    <td class="p-3 text-center">${s.kuis}</td>
-                    <td class="p-3 text-center">${s.catatan}</td>
-                    <td class="p-3 text-center">${s.praktek}</td>
-                    <td class="p-3 text-center">${s.ujian}</td>
-                    <td class="p-3 text-center font-black text-brand-600">${calc.finalScore.toFixed(2)}</td>
-                    <td class="p-3 text-center">
-                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-full ${calc.isTuntas ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
-                            ${calc.statusText}
+                    <td class="p-4 font-bold text-slate-900">${s.nama}</td>
+                    <td class="p-4 font-semibold text-slate-600">${s.kelas}</td>
+                    <td class="p-4 text-center font-bold text-slate-800">${s.nilaiUjian || 0}</td>
+                    <td class="p-4 text-center font-black text-blue-600 text-sm">${finalScore}</td>
+                    <td class="p-4 text-center font-bold">${getPredikat(finalScore)}</td>
+                    <td class="p-4 text-center">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${isTuntas ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                            ${isTuntas ? 'TUNTAS' : 'REMEDIAL'}
                         </span>
                     </td>
-                    <td class="p-3 text-center space-x-1">
-                        <button onclick="editSiswaAdmin('${s.nisn}')" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="deleteSiswaAdmin('${s.nisn}')" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg"><i class="fa-solid fa-trash-can"></i></button>
+                    <td class="p-4 text-center space-x-2">
+                        <button onclick="editSiswa('${s.id}')" class="text-blue-600 hover:text-blue-800 font-bold">Edit</button>
+                        <button onclick="deleteSiswa('${s.id}')" class="text-rose-600 hover:text-rose-800 font-bold">Hapus</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function openModalSiswa() {
+        // MODAL ADD / EDIT SISWA
+        function openModalTambah() {
             document.getElementById('modal-siswa-title').innerText = "Tambah Data Siswa Baru";
-            document.getElementById('edit-orig-nisn').value = '';
-            document.getElementById('m-nisn').value = '';
-            document.getElementById('m-nama').value = '';
-            document.getElementById('m-kelas').value = 'X-1';
-            document.getElementById('m-tugas').value = 80;
-            document.getElementById('m-kuis').value = 80;
-            document.getElementById('m-catatan').value = 80;
-            document.getElementById('m-praktek').value = 80;
-            document.getElementById('m-ujian').value = 80;
-            document.getElementById('m-catatanguru').value = '';
+            document.getElementById('form-id').value = '';
+            document.getElementById('form-nama').value = '';
+            document.getElementById('form-nilai-ujian').value = '';
+            document.getElementById('form-nilai-tugas').value = '0';
+            document.getElementById('form-nilai-kuis').value = '0';
+            document.getElementById('form-nilai-catatan').value = '0';
+            document.getElementById('form-nilai-praktek').value = '0';
+            document.getElementById('form-catatan').value = '';
+            
+            // Toggle form fields based on mode
+            document.getElementById('form-additional-scores').style.display = appState.assessmentMode === 'MID' ? 'none' : 'block';
+
             document.getElementById('modal-siswa').classList.remove('hidden');
-        }
-
-        function editSiswaAdmin(nisn) {
-            const student = appState.students.find(s => s.nisn === nisn);
-            if (!student) return;
-
-            document.getElementById('modal-siswa-title').innerText = "Edit Data Nilai Siswa";
-            document.getElementById('edit-orig-nisn').value = student.nisn;
-            document.getElementById('m-nisn').value = student.nisn;
-            document.getElementById('m-nama').value = student.nama;
-            document.getElementById('m-kelas').value = student.kelas;
-            document.getElementById('m-tugas').value = student.tugas;
-            document.getElementById('m-kuis').value = student.kuis;
-            document.getElementById('m-catatan').value = student.catatan;
-            document.getElementById('m-praktek').value = student.praktek;
-            document.getElementById('m-ujian').value = student.ujian;
-            document.getElementById('m-catatanguru').value = student.catatan_guru || '';
-            document.getElementById('modal-siswa').classList.remove('hidden');
-        }
-
-        function handleSaveSiswaAdmin(e) {
-            e.preventDefault();
-            const orig = document.getElementById('edit-orig-nisn').value;
-            const nisn = document.getElementById('m-nisn').value.trim();
-
-            const studentData = {
-                nisn: nisn,
-                nama: document.getElementById('m-nama').value.trim(),
-                kelas: document.getElementById('m-kelas').value,
-                tugas: parseFloat(document.getElementById('m-tugas').value) || 0,
-                kuis: parseFloat(document.getElementById('m-kuis').value) || 0,
-                catatan: parseFloat(document.getElementById('m-catatan').value) || 0,
-                praktek: parseFloat(document.getElementById('m-praktek').value) || 0,
-                ujian: parseFloat(document.getElementById('m-ujian').value) || 0,
-                catatan_guru: document.getElementById('m-catatanguru').value.trim()
-            };
-
-            if (orig) {
-                const idx = appState.students.findIndex(s => s.nisn === orig);
-                if (idx !== -1) appState.students[idx] = studentData;
-            } else {
-                if (appState.students.some(s => s.nisn === nisn)) {
-                    alert('NISN tersebut sudah terdaftar.');
-                    return;
-                }
-                appState.students.push(studentData);
-            }
-
-            saveState();
-            closeModalSiswa();
-        }
-
-        function deleteSiswaAdmin(nisn) {
-            if (confirm(`Hapus data nilai siswa NISN: ${nisn}?`)) {
-                appState.students = appState.students.filter(s => s.nisn !== nisn);
-                saveState();
-            }
         }
 
         function closeModalSiswa() {
             document.getElementById('modal-siswa').classList.add('hidden');
         }
 
-        // CHARTS & STATS CONTROLLER
-        function updateDashboardStats() {
-            const total = appState.students.length;
-            let tuntas = 0;
-            let totalSum = 0;
+        function editSiswa(id) {
+            const siswa = siswaDatabase.find(s => s.id === id);
+            if (!siswa) return;
 
-            appState.students.forEach(s => {
-                const calc = computeGrade(s);
-                if (calc.isTuntas) tuntas++;
-                totalSum += calc.finalScore;
-            });
+            document.getElementById('modal-siswa-title').innerText = "Edit Data Nilai Siswa";
+            document.getElementById('form-id').value = siswa.id;
+            document.getElementById('form-nama').value = siswa.nama;
+            document.getElementById('form-kelas').value = siswa.kelas;
+            document.getElementById('form-nilai-ujian').value = siswa.nilaiUjian || 0;
+            document.getElementById('form-nilai-tugas').value = siswa.nilaiTugas || 0;
+            document.getElementById('form-nilai-kuis').value = siswa.nilaiKuis || 0;
+            document.getElementById('form-nilai-catatan').value = siswa.nilaiCatatan || 0;
+            document.getElementById('form-nilai-praktek').value = siswa.nilaiPraktek || 0;
+            document.getElementById('form-catatan').value = siswa.catatan || '';
 
-            const belum = total - tuntas;
-            const avg = total > 0 ? (totalSum / total).toFixed(2) : "0.00";
+            document.getElementById('form-additional-scores').style.display = appState.assessmentMode === 'MID' ? 'none' : 'block';
 
-            document.getElementById('dash-total-siswa').innerText = total;
-            document.getElementById('dash-total-tuntas').innerText = tuntas;
-            document.getElementById('dash-total-belum').innerText = belum;
-            document.getElementById('dash-avg-angkatan').innerText = avg;
+            document.getElementById('modal-siswa').classList.remove('hidden');
         }
 
-        function initCharts() {
-            const ctx1 = document.getElementById('chart-tuntas').getContext('2d');
-            chartTuntasInstance = new Chart(ctx1, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Tuntas (>=75)', 'Belum Tuntas (<75)'],
-                    datasets: [{
-                        data: [0, 0],
-                        backgroundColor: ['#10b981', '#f43f5e'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        function handleSaveSiswa(e) {
+            e.preventDefault();
+            const id = document.getElementById('form-id').value;
+            const newData = {
+                nama: document.getElementById('form-nama').value,
+                kelas: document.getElementById('form-kelas').value,
+                nilaiUjian: parseFloat(document.getElementById('form-nilai-ujian').value) || 0,
+                nilaiTugas: parseFloat(document.getElementById('form-nilai-tugas').value) || 0,
+                nilaiKuis: parseFloat(document.getElementById('form-nilai-kuis').value) || 0,
+                nilaiCatatan: parseFloat(document.getElementById('form-nilai-catatan').value) || 0,
+                nilaiPraktek: parseFloat(document.getElementById('form-nilai-praktek').value) || 0,
+                catatan: document.getElementById('form-catatan').value
+            };
+
+            if (id) {
+                // Edit
+                const index = siswaDatabase.findIndex(s => s.id === id);
+                if (index !== -1) {
+                    siswaDatabase[index] = { ...siswaDatabase[index], ...newData };
+                }
+            } else {
+                // New
+                const newSiswa = { id: Date.now().toString(), ...newData };
+                siswaDatabase.push(newSiswa);
+            }
+
+            saveLocalSiswaData();
+            closeModalSiswa();
+        }
+
+        function deleteSiswa(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus data siswa ini?")) {
+                siswaDatabase = siswaDatabase.filter(s => s.id !== id);
+                saveLocalSiswaData();
+            }
+        }
+
+        // ANALYTICS & CHARTS
+        let chartKelasInstance = null;
+        let chartPredikatInstance = null;
+
+        function renderAnalytics() {
+            const total = siswaDatabase.length;
+            if (total === 0) return;
+
+            let totalNilai = 0;
+            let countTuntas = 0;
+            let predikatCount = { A: 0, B: 0, C: 0, D: 0 };
+            let kelasScores = {};
+
+            siswaDatabase.forEach(s => {
+                const finalScore = calculateFinalScore(s);
+                totalNilai += finalScore;
+
+                if (finalScore >= KKM_SCORE) countTuntas++;
+                
+                const pred = getPredikat(finalScore);
+                predikatCount[pred]++;
+
+                if (!kelasScores[s.kelas]) kelasScores[s.kelas] = { total: 0, count: 0 };
+                kelasScores[s.kelas].total += finalScore;
+                kelasScores[s.kelas].count++;
             });
 
-            const ctx2 = document.getElementById('chart-kelas').getContext('2d');
-            chartKelasInstance = new Chart(ctx2, {
+            const avg = (totalNilai / total).toFixed(1);
+            const persenTuntas = Math.round((countTuntas / total) * 100);
+
+            document.getElementById('metric-total-siswa').innerText = total;
+            document.getElementById('metric-rata-rata').innerText = avg;
+            document.getElementById('metric-persen-tuntas').innerText = `${persenTuntas}%`;
+            document.getElementById('metric-jumlah-tuntas').innerText = `${countTuntas} Tuntas`;
+            document.getElementById('metric-belum-tuntas').innerText = total - countTuntas;
+
+            // Render Chart Kelas
+            const kelasLabels = Object.keys(kelasScores);
+            const kelasAverages = kelasLabels.map(k => (kelasScores[k].total / kelasScores[k].count).toFixed(1));
+
+            if (chartKelasInstance) chartKelasInstance.destroy();
+            const ctx1 = document.getElementById('chart-kelas').getContext('2d');
+            chartKelasInstance = new Chart(ctx1, {
                 type: 'bar',
                 data: {
-                    labels: ['Kelas X', 'Kelas XI', 'Kelas XII'],
+                    labels: kelasLabels,
                     datasets: [{
-                        label: 'Rata-Rata Nilai Informatika',
-                        data: [0, 0, 0],
-                        backgroundColor: '#0284c7',
+                        label: 'Rata-Rata Nilai',
+                        data: kelasAverages,
+                        backgroundColor: '#2563eb',
                         borderRadius: 8
                     }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } } }
             });
 
-            updateDashboardStats();
-        }
-
-        function renderDashboardCharts() {
-            updateDashboardStats();
-            let tuntas = 0;
-            let belum = 0;
-
-            let sumX = 0, countX = 0;
-            let sumXI = 0, countXI = 0;
-            let sumXII = 0, countXII = 0;
-
-            appState.students.forEach(s => {
-                const calc = computeGrade(s);
-                if (calc.isTuntas) tuntas++; else belum++;
-
-                if (s.kelas.startsWith('X-')) { sumX += calc.finalScore; countX++; }
-                else if (s.kelas.startsWith('XI-')) { sumXI += calc.finalScore; countXI++; }
-                else if (s.kelas.startsWith('XII-')) { sumXII += calc.finalScore; countXII++; }
+            // Render Chart Predikat
+            if (chartPredikatInstance) chartPredikatInstance.destroy();
+            const ctx2 = document.getElementById('chart-predikat').getContext('2d');
+            chartPredikatInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Predikat A (Sangat Baik)', 'Predikat B (Baik)', 'Predikat C (Cukup)', 'Predikat D (Remedial)'],
+                    datasets: [{
+                        data: [predikatCount.A, predikatCount.B, predikatCount.C, predikatCount.D],
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
             });
-
-            if (chartTuntasInstance) {
-                chartTuntasInstance.data.datasets[0].data = [tuntas, belum];
-                chartTuntasInstance.update();
-            }
-
-            if (chartKelasInstance) {
-                const avgX = countX > 0 ? (sumX / countX).toFixed(2) : 0;
-                const avgXI = countXI > 0 ? (sumXI / countXI).toFixed(2) : 0;
-                const avgXII = countXII > 0 ? (sumXII / countXII).toFixed(2) : 0;
-
-                chartKelasInstance.data.datasets[0].data = [avgX, avgXI, avgXII];
-                chartKelasInstance.update();
-            }
-        }
-
-        // SETTINGS & SYSTEM CONTROLLER
-        function saveSystemSettings() {
-            appState.settings.semester = document.getElementById('cfg-semester').value;
-            appState.settings.jenisUjian = document.getElementById('cfg-jenis-ujian').value;
-            appState.settings.isPengumumanOpen = document.getElementById('cfg-status-pengumuman').checked;
-
-            saveState();
-            updateSettingsUI();
-        }
-
-        function updateSettingsUI() {
-            const sem = appState.settings.semester;
-            const jenis = appState.settings.jenisUjian;
-
-            const semText = sem === 'GANJIL' ? 'Semester Ganjil (Juli - Desember 2026)' : 'Semester Genap (Januari - Juni 2027)';
-            document.getElementById('lbl-active-title').innerText = `Pengumuman Nilai ${jenis} Informatika (${semText})`;
-
-            const statusLbl = document.getElementById('lbl-status-pengumuman');
-            if (appState.settings.isPengumumanOpen) {
-                statusLbl.innerText = "DIBUKA UNTUK UMUM";
-                statusLbl.className = "text-xs font-extrabold text-emerald-400";
-            } else {
-                statusLbl.innerText = "DITUTUP DARI UMUM";
-                statusLbl.className = "text-xs font-extrabold text-rose-400";
-            }
-        }
-
-        function exportJSONData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState.students, null, 2));
-            const a = document.createElement('a');
-            a.setAttribute("href", dataStr);
-            a.setAttribute("download", `NILAI_INFORMATIKA_SMAN4_MANADO_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        }
-
-        function resetDataDefault() {
-            if (confirm('Reset seluruh data nilai ke data standar bawaan?')) {
-                appState.students = DEFAULT_STUDENTS;
-                saveState();
-                alert('Data berhasil di-reset.');
-            }
         }
     </script>
 </body>
