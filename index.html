@@ -688,7 +688,7 @@
                             <div class="space-y-3">
                                 <div>
                                     <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Firebase Config JSON</label>
-                                    <textarea id="settingFirebaseConfigInput" rows="3" placeholder='{ "apiKey": "AIzaSyDIRvSMTkTD6jHxmlvL8clTOEBZl55eTA4", "authDomain": "siswa-informatika-sman4.firebaseapp.com", "projectId": "siswa-informatika-sman4", "storageBucket": "siswa-informatika-sman4.firebasestorage.app", "messagingSenderId": "457118422313", "appId": "1:457118422313:web:288b153a4e4c8782f7d338" }' class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-mono focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
+                                    <textarea id="settingFirebaseConfigInput" rows="3" placeholder='{ "apiKey": "AIzaSyDIRvSMTkTD6jHxmlvL8clTOEBZl55eTA4", "authDomain": "siswa-informatika-sman4.firebaseapp.com", "databaseURL: "https://siswa-informatika-sman4-default-rtdb.asia-southeast1.firebasedatabase.app, "projectId": "siswa-informatika-sman4", "storageBucket": "siswa-informatika-sman4.firebasestorage.app", "messagingSenderId": "457118422313", "appId": "1:457118422313:web:288b153a4e4c8782f7d338" }' class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-mono focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
                                 </div>
                                 <div class="flex flex-wrap gap-2">
                                     <button onclick="saveFirebaseConfig()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5">
@@ -1398,12 +1398,31 @@
 
         async function handleSaveSiswa(e) {
             e.preventDefault();
-            const id = document.getElementById('formSiswaId').value || String(Date.now());
+            const currentId = document.getElementById('formSiswaId').value;
+            const nisInput = document.getElementById('formNis').value.trim();
+            const namaInput = document.getElementById('formNama').value.trim().toUpperCase();
+            const kelasInput = document.getElementById('formKelas').value;
+
+            // 1. Pengecekan Duplikat NIS Unik
+            const duplicateNis = studentsData.find(s => s.id !== currentId && s.nis === nisInput);
+            if (duplicateNis) {
+                showToast(`Peringatan: NIS "${nisInput}" sudah terdaftar atas nama ${duplicateNis.nama} (${duplicateNis.kelas})!`, "warning");
+                return;
+            }
+
+            // 2. Pengecekan Duplikat Nama dan Kelas
+            const duplicateNamaKelas = studentsData.find(s => s.id !== currentId && s.nama.toUpperCase() === namaInput && s.kelas === kelasInput);
+            if (duplicateNamaKelas) {
+                showToast(`Peringatan: Siswa "${namaInput}" sudah terdaftar di kelas ${kelasInput}!`, "warning");
+                return;
+            }
+
+            const id = currentId || String(Date.now());
             
             const payload = {
-                nis: document.getElementById('formNis').value.trim(),
-                nama: document.getElementById('formNama').value.trim().toUpperCase(),
-                kelas: document.getElementById('formKelas').value,
+                nis: nisInput,
+                nama: namaInput,
+                kelas: kelasInput,
                 nilaiMid: Number(document.getElementById('formNilaiMid').value),
                 tugas: Number(document.getElementById('formNilaiTugas').value),
                 kuis: Number(document.getElementById('formNilaiKuis').value),
