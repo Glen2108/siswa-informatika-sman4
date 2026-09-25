@@ -319,7 +319,7 @@
                                 <h4 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-600">PEMERINTAH PROVINSI SULAWESI UTARA</h4>
                                 <h3 class="text-sm sm:text-base font-extrabold uppercase text-slate-800">DINAS PENDIDIKAN DAERAH</h3>
                                 <h2 class="text-base sm:text-xl font-black uppercase text-emerald-800 tracking-tight">SMA NEGERI 4 MANADO</h2>
-                                <p class="text-[11px] sm:text-xs text-slate-500 font-medium">Jl. Manguni 11, Perkamil, Kec. Paal Dua, Kota Manado, Sulawesi Utara</p>
+                                <p class="text-[11px] sm:text-xs text-slate-500 font-medium">Jl. A.A. Maramis, Paniki Dua, Kec. Mapanget, Kota Manado, Sulawesi Utara</p>
                             </div>
                             <div class="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 flex items-center justify-center text-xs text-center border border-slate-300 rounded-lg bg-white p-1 shadow-sm">
                                 <span class="font-bold text-slate-700 text-[10px] leading-tight">AKREDITASI<br><span class="text-emerald-700 text-base">A</span></span>
@@ -442,7 +442,7 @@
 
                                 <div class="h-14"></div> <!-- Tanda tangan space -->
                                 <p class="text-xs font-bold text-slate-900 underline">Glendy A. Taawoeda, S.Pd.</p>
-                                <p class="text-[10px] text-slate-500">NIP. 19930821 202601 1 001</p>
+                                <p class="text-[10px] text-slate-500">NIP. 19930821 202221 1 005</p>
                             </div>
                         </div>
 
@@ -578,17 +578,41 @@
                 <div id="subTabSiswa" class="hidden space-y-4">
                     <!-- Table Actions Toolbar -->
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4 glass-card p-4 rounded-2xl">
-                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                            
+                            <!-- Show Entries Selector -->
+                            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+                                <span>Tampilkan</span>
+                                <select id="adminEntriesPerPage" onchange="changeAdminEntriesPerPage()" class="bg-white border border-slate-300 text-xs font-semibold rounded-xl px-2.5 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="500">500</option>
+                                </select>
+                                <span>entri</span>
+                            </div>
+
                             <!-- Filter Kelas Table -->
-                            <select id="adminFilterKelas" onchange="renderAdminSiswaTable()" class="bg-white border border-slate-300 text-xs font-semibold rounded-xl px-3 py-2">
+                            <select id="adminFilterKelas" onchange="resetPageAndRenderTable()" class="bg-white border border-slate-300 text-xs font-semibold rounded-xl px-3 py-2 focus:ring-2 focus:ring-emerald-500">
                                 <option value="">Semua Kelas</option>
-                                <option value="X-1">X-1</option><option value="X-2">X-2</option><option value="X-3">X-3</option><option value="X-4">X-4</option>
-                                <option value="XI-1">XI-1</option><option value="XI-2">XI-2</option><option value="XI-3">XI-3</option><option value="XI-4">XI-4</option><option value="XI-5">XI-5</option>
-                                <option value="XII-1">XII-1</option><option value="XII-2">XII-2</option><option value="XII-3">XII-3</option><option value="XII-4">XII-4</option><option value="XII-5">XII-5</option>
+                                <optgroup label="Kelas X (Sepuluh)">
+                                    <option value="X-1">X-1</option><option value="X-2">X-2</option><option value="X-3">X-3</option><option value="X-4">X-4</option>
+                                </optgroup>
+                                <optgroup label="Kelas XI (Sebelas)">
+                                    <option value="XI-1">XI-1</option><option value="XI-2">XI-2</option><option value="XI-3">XI-3</option><option value="XI-4">XI-4</option><option value="XI-5">XI-5</option>
+                                </optgroup>
+                                <optgroup label="Kelas XII (Dua Belas)">
+                                    <option value="XII-1">XII-1</option><option value="XII-2">XII-2</option><option value="XII-3">XII-3</option><option value="XII-4">XII-4</option><option value="XII-5">XII-5</option>
+                                </optgroup>
                             </select>
 
-                            <input type="text" id="adminSearchInput" oninput="renderAdminSiswaTable()" placeholder="Cari nama/NIS..." 
-                                   class="bg-white border border-slate-300 text-xs rounded-xl px-3 py-2 w-48">
+                            <!-- Search Input -->
+                            <div class="relative">
+                                <input type="text" id="adminSearchInput" oninput="resetPageAndRenderTable()" placeholder="Cari nama/NIS..." 
+                                       class="bg-white border border-slate-300 text-xs rounded-xl pl-8 pr-3 py-2 w-44 sm:w-52 focus:ring-2 focus:ring-emerald-500">
+                                <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+                            </div>
                         </div>
 
                         <div class="flex items-center gap-2 w-full md:w-auto justify-end">
@@ -602,14 +626,44 @@
                     <div class="glass-card rounded-2xl overflow-hidden border border-slate-200">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-900 text-white font-bold uppercase tracking-wider">
+                                <thead class="bg-slate-900 text-white font-bold uppercase tracking-wider select-none">
                                     <tr>
-                                        <th class="p-3">NIS</th>
-                                        <th class="p-3">Nama Siswa</th>
-                                        <th class="p-3">Kelas</th>
-                                        <th class="p-3 text-center">Nilai Mid</th>
-                                        <th class="p-3 text-center">Nilai Semester</th>
-                                        <th class="p-3 text-center">Status</th>
+                                        <th onclick="handleTableSort('nis')" class="p-3 cursor-pointer hover:bg-slate-800 transition-colors">
+                                            <div class="flex items-center gap-1">
+                                                <span>NIS</span>
+                                                <i id="sortIcon_nis" data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i>
+                                            </div>
+                                        </th>
+                                        <th onclick="handleTableSort('nama')" class="p-3 cursor-pointer hover:bg-slate-800 transition-colors">
+                                            <div class="flex items-center gap-1">
+                                                <span>Nama Siswa (A-Z)</span>
+                                                <i id="sortIcon_nama" data-lucide="arrow-up-narrow-wide" class="w-3.5 h-3.5 text-emerald-400"></i>
+                                            </div>
+                                        </th>
+                                        <th onclick="handleTableSort('kelas')" class="p-3 cursor-pointer hover:bg-slate-800 transition-colors">
+                                            <div class="flex items-center gap-1">
+                                                <span>Kelas</span>
+                                                <i id="sortIcon_kelas" data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i>
+                                            </div>
+                                        </th>
+                                        <th onclick="handleTableSort('nilaiMid')" class="p-3 text-center cursor-pointer hover:bg-slate-800 transition-colors">
+                                            <div class="flex items-center justify-center gap-1">
+                                                <span>Nilai Mid</span>
+                                                <i id="sortIcon_nilaiMid" data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i>
+                                            </div>
+                                        </th>
+                                        <th onclick="handleTableSort('score')" class="p-3 text-center cursor-pointer hover:bg-slate-800 transition-colors">
+                                            <div class="flex items-center justify-center gap-1">
+                                                <span>Nilai Akhir</span>
+                                                <i id="sortIcon_score" data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i>
+                                            </div>
+                                        </th>
+                                        <th onclick="handleTableSort('status')" class="p-3 text-center cursor-pointer hover:bg-slate-800 transition-colors">
+                                            <div class="flex items-center justify-center gap-1">
+                                                <span>Status</span>
+                                                <i id="sortIcon_status" data-lucide="arrow-up-down" class="w-3.5 h-3.5 opacity-40"></i>
+                                            </div>
+                                        </th>
                                         <th class="p-3 text-right">Aksi</th>
                                     </tr>
                                 </thead>
@@ -617,6 +671,16 @@
                                     <!-- Dynamic Row Rendering -->
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Pagination Footer -->
+                        <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-medium text-slate-600">
+                            <div id="adminPaginationInfo">
+                                Menampilkan 0 data
+                            </div>
+                            <div id="adminPaginationControls" class="flex items-center gap-1.5">
+                                <!-- Dynamic pagination buttons -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -688,7 +752,7 @@
                             <div class="space-y-3">
                                 <div>
                                     <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Firebase Config JSON</label>
-                                    <textarea id="settingFirebaseConfigInput" rows="3" placeholder='{ "apiKey": "AIzaSyDIRvSMTkTD6jHxmlvL8clTOEBZl55eTA4", "authDomain": "siswa-informatika-sman4.firebaseapp.com", "databaseURL: "https://siswa-informatika-sman4-default-rtdb.asia-southeast1.firebasedatabase.app, "projectId": "siswa-informatika-sman4", "storageBucket": "siswa-informatika-sman4.firebasestorage.app", "messagingSenderId": "457118422313", "appId": "1:457118422313:web:288b153a4e4c8782f7d338" }' class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-mono focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
+                                    <textarea id="settingFirebaseConfigInput" rows="3" placeholder='{ "apiKey": "AIzaSyDIRvSMTkTD6jHxmlvL8clTOEBZl55eTA4", "authDomain": "siswa-informatika-sman4.firebaseapp.com", "databaseURL": "https://siswa-informatika-sman4-default-rtdb.asia-southeast1.firebasedatabase.app", "projectId": "siswa-informatika-sman4", "storageBucket": "siswa-informatika-sman4.firebasestorage.app", "messagingSenderId": "457118422313", "appId": "1:457118422313:web:288b153a4e4c8782f7d338" }' class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-mono focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
                                 </div>
                                 <div class="flex flex-wrap gap-2">
                                     <button onclick="saveFirebaseConfig()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5">
@@ -822,11 +886,11 @@
         let chartInstanceKelas = null;
         let chartInstancePredikat = null;
 
-        /* ===================================================================
-           2. FIREBASE FIRESTORE SDK INTEGRATION WITH LOCALSTORAGE FALLBACK
-           =================================================================== */
-        let db = null;
-        let useFirebase = false;
+        // Table Pagination & Sorting State
+        let adminPageSize = 10;
+        let adminCurrentPage = 1;
+        let adminSortColumn = 'nama';
+        let adminSortDirection = 'asc';
 
         // Firebase Config Placeholder (Runs fallback gracefully if unconfigured)
         let firebaseConfig = {
@@ -1313,54 +1377,191 @@
             const filterKelas = document.getElementById('adminFilterKelas').value;
             const searchQuery = document.getElementById('adminSearchInput').value.toLowerCase();
 
-            const filtered = studentsData.filter(s => {
+            // 1. Filter Data
+            let filtered = studentsData.filter(s => {
                 const matchKelas = filterKelas ? s.kelas === filterKelas : true;
                 const matchQuery = s.nama.toLowerCase().includes(searchQuery) || s.nis.includes(searchQuery);
                 return matchKelas && matchQuery;
             });
 
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">Tidak ada data siswa ditemukan.</td></tr>`;
+            // 2. Sort Data (A-Z by default or by column)
+            filtered.sort((a, b) => {
+                let valA, valB;
+                if (adminSortColumn === 'score') {
+                    valA = appSettings.mode === "MID" ? (a.nilaiMid || 0) : Math.round(((a.tugas||0)*0.2) + ((a.kuis||0)*0.15) + ((a.catatan||0)*0.1) + ((a.praktek||0)*0.3) + ((a.ujianAkhir||0)*0.25));
+                    valB = appSettings.mode === "MID" ? (b.nilaiMid || 0) : Math.round(((b.tugas||0)*0.2) + ((b.kuis||0)*0.15) + ((b.catatan||0)*0.1) + ((b.praktek||0)*0.3) + ((b.ujianAkhir||0)*0.25));
+                } else if (adminSortColumn === 'status') {
+                    const scA = appSettings.mode === "MID" ? (a.nilaiMid || 0) : Math.round(((a.tugas||0)*0.2) + ((a.kuis||0)*0.15) + ((a.catatan||0)*0.1) + ((a.praktek||0)*0.3) + ((a.ujianAkhir||0)*0.25));
+                    const scB = appSettings.mode === "MID" ? (b.nilaiMid || 0) : Math.round(((b.tugas||0)*0.2) + ((b.kuis||0)*0.15) + ((b.catatan||0)*0.1) + ((b.praktek||0)*0.3) + ((b.ujianAkhir||0)*0.25));
+                    valA = scA >= KKM ? 1 : 0;
+                    valB = scB >= KKM ? 1 : 0;
+                } else {
+                    valA = a[adminSortColumn] || '';
+                    valB = b[adminSortColumn] || '';
+                }
+
+                let res = 0;
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    res = valA - valB;
+                } else {
+                    res = String(valA).localeCompare(String(valB), 'id', { numeric: true, sensitivity: 'base' });
+                }
+
+                return adminSortDirection === 'asc' ? res : -res;
+            });
+
+            // 3. Update Header Sorting Icons
+            updateSortHeaderIcons();
+
+            // 4. Calculate Pagination Slices
+            const totalEntries = filtered.length;
+            const totalPages = Math.ceil(totalEntries / adminPageSize) || 1;
+            if (adminCurrentPage > totalPages) adminCurrentPage = totalPages;
+            if (adminCurrentPage < 1) adminCurrentPage = 1;
+
+            const startIndex = totalEntries === 0 ? 0 : (adminCurrentPage - 1) * adminPageSize;
+            const endIndex = Math.min(startIndex + adminPageSize, totalEntries);
+            const pageStudents = filtered.slice(startIndex, endIndex);
+
+            if (totalEntries === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400 font-medium">Tidak ada data siswa ditemukan.</td></tr>`;
+            } else {
+                pageStudents.forEach(s => {
+                    let score = 0;
+                    if (appSettings.mode === "MID") {
+                        score = s.nilaiMid || 0;
+                    } else {
+                        score = Math.round(((s.tugas||0)*0.2) + ((s.kuis||0)*0.15) + ((s.catatan||0)*0.1) + ((s.praktek||0)*0.3) + ((s.ujianAkhir||0)*0.25));
+                    }
+
+                    const isTuntas = score >= KKM;
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-all";
+                    tr.innerHTML = `
+                        <td class="p-3 font-mono text-slate-500">${s.nis}</td>
+                        <td class="p-3 font-bold text-slate-800">${s.nama}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-[10px]">${s.kelas}</span></td>
+                        <td class="p-3 text-center font-bold text-blue-600">${s.nilaiMid || 0}</td>
+                        <td class="p-3 text-center font-bold text-emerald-600">${score}</td>
+                        <td class="p-3 text-center">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isTuntas ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                                ${isTuntas ? 'TUNTAS' : 'REMIDI'}
+                            </span>
+                        </td>
+                        <td class="p-3 text-right space-x-1">
+                            <button onclick="editSiswa('${s.id}')" class="p-1.5 hover:bg-slate-200 text-slate-600 rounded-lg" title="Edit Data">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteSiswa('${s.id}')" class="p-1.5 hover:bg-rose-100 text-rose-600 rounded-lg" title="Hapus Data">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // 5. Render Pagination Info & Controls
+            renderPaginationUI(totalEntries, startIndex, endIndex, totalPages);
+            lucide.createIcons();
+        }
+
+        function resetPageAndRenderTable() {
+            adminCurrentPage = 1;
+            renderAdminSiswaTable();
+        }
+
+        function changeAdminEntriesPerPage() {
+            const val = parseInt(document.getElementById('adminEntriesPerPage').value) || 10;
+            adminPageSize = val;
+            adminCurrentPage = 1;
+            renderAdminSiswaTable();
+        }
+
+        function handleTableSort(column) {
+            if (adminSortColumn === column) {
+                adminSortDirection = adminSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                adminSortColumn = column;
+                adminSortDirection = 'asc';
+            }
+            renderAdminSiswaTable();
+        }
+
+        function goToAdminPage(page) {
+            adminCurrentPage = page;
+            renderAdminSiswaTable();
+        }
+
+        function updateSortHeaderIcons() {
+            const cols = ['nis', 'nama', 'kelas', 'nilaiMid', 'score', 'status'];
+            cols.forEach(col => {
+                const icon = document.getElementById(`sortIcon_${col}`);
+                if (!icon) return;
+                if (adminSortColumn === col) {
+                    icon.className = `w-3.5 h-3.5 text-emerald-400 font-bold ${adminSortDirection === 'asc' ? '' : 'rotate-180 transition-transform'}`;
+                    icon.setAttribute('data-lucide', adminSortDirection === 'asc' ? 'arrow-up-narrow-wide' : 'arrow-down-narrow-wide');
+                } else {
+                    icon.className = 'w-3.5 h-3.5 opacity-40';
+                    icon.setAttribute('data-lucide', 'arrow-up-down');
+                }
+            });
+        }
+
+        function renderPaginationUI(totalEntries, startIndex, endIndex, totalPages) {
+            const infoEl = document.getElementById('adminPaginationInfo');
+            const controlsEl = document.getElementById('adminPaginationControls');
+            if (!infoEl || !controlsEl) return;
+
+            if (totalEntries === 0) {
+                infoEl.innerHTML = `Menampilkan <b>0</b> data`;
+                controlsEl.innerHTML = '';
                 return;
             }
 
-            filtered.forEach(s => {
-                // Compute score
-                let score = 0;
-                if (appSettings.mode === "MID") {
-                    score = s.nilaiMid || 0;
-                } else {
-                    score = Math.round(((s.tugas||0)*0.2) + ((s.kuis||0)*0.15) + ((s.catatan||0)*0.1) + ((s.praktek||0)*0.3) + ((s.ujianAkhir||0)*0.25));
-                }
+            infoEl.innerHTML = `Menampilkan <b>${startIndex + 1}</b> - <b>${endIndex}</b> dari <b>${totalEntries}</b> data siswa`;
 
-                const isTuntas = score >= KKM;
+            let buttonsHtml = '';
 
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition-all";
-                tr.innerHTML = `
-                    <td class="p-3 font-mono text-slate-500">${s.nis}</td>
-                    <td class="p-3 font-bold text-slate-800">${s.nama}</td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-[10px]">${s.kelas}</span></td>
-                    <td class="p-3 text-center font-bold text-blue-600">${s.nilaiMid || 0}</td>
-                    <td class="p-3 text-center font-bold text-emerald-600">${score}</td>
-                    <td class="p-3 text-center">
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isTuntas ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
-                            ${isTuntas ? 'TUNTAS' : 'REMIDI'}
-                        </span>
-                    </td>
-                    <td class="p-3 text-right space-x-1">
-                        <button onclick="editSiswa('${s.id}')" class="p-1.5 hover:bg-slate-200 text-slate-600 rounded-lg" title="Edit Data">
-                            <i data-lucide="edit-3" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="deleteSiswa('${s.id}')" class="p-1.5 hover:bg-rose-100 text-rose-600 rounded-lg" title="Hapus Data">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </td>
+            // Prev Button
+            const prevDisabled = adminCurrentPage === 1;
+            buttonsHtml += `
+                <button onclick="goToAdminPage(${adminCurrentPage - 1})" ${prevDisabled ? 'disabled' : ''} 
+                        class="px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all font-semibold flex items-center gap-1 text-xs">
+                    <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">Sebelumnya</span>
+                </button>
+            `;
+
+            // Page Numbers
+            let startPage = Math.max(1, adminCurrentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const isActive = i === adminCurrentPage;
+                buttonsHtml += `
+                    <button onclick="goToAdminPage(${i})" 
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isActive ? 'bg-emerald-600 text-white shadow' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'}">
+                        ${i}
+                    </button>
                 `;
-                tbody.appendChild(tr);
-            });
+            }
 
-            lucide.createIcons();
+            // Next Button
+            const nextDisabled = adminCurrentPage === totalPages;
+            buttonsHtml += `
+                <button onclick="goToAdminPage(${adminCurrentPage + 1})" ${nextDisabled ? 'disabled' : ''} 
+                        class="px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all font-semibold flex items-center gap-1 text-xs">
+                    <span class="hidden sm:inline">Selanjutnya</span>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </button>
+            `;
+
+            controlsEl.innerHTML = buttonsHtml;
         }
 
         function openSiswaModal(id = null) {
