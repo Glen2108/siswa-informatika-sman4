@@ -197,7 +197,7 @@
                         </div>
                         <div class="flex items-center gap-1.5">
                             <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i>
-                            <span>KKM Minimun: <b class="text-emerald-300">75</b></span>
+                            <span>KKM Minimun: <b class="text-emerald-300">80</b></span>
                         </div>
                     </div>
                 </div>
@@ -395,7 +395,7 @@
                                 <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Predikat & KKM</span>
                                 <div class="flex items-center justify-center gap-2 mt-1">
                                     <span id="resPredikat" class="text-3xl font-black text-amber-400">E</span>
-                                    <span class="text-xs text-slate-400">(KKM: 75)</span>
+                                    <span class="text-xs text-slate-400">(KKM: 80)</span>
                                 </div>
                                 <span id="resPredikatKet" class="text-[10px] text-slate-300 mt-1">Sangat Baik</span>
                             </div>
@@ -800,7 +800,7 @@
            1. CONSTANTS & INITIAL DUMMY DATA
            =================================================================== */
         const ADMIN_PIN = "210893";
-        const KKM = 75;
+        const KKM = 80;
 
         const DEFAULT_STUDENTS = [
             { id: "1", nis: "20261001", nama: "ALEXANDER MANGUNDAP", kelas: "X-1", nilaiMid: 88, tugas: 85, kuis: 90, catatan: 88, praktek: 92, ujianAkhir: 86, catatanGuru: "Sangat baik dalam pemrograman dasar dan logika algoritma." },
@@ -1123,8 +1123,8 @@
             let predikat = "D";
             let predikatKet = "Kurang";
             if (finalScore >= 90) { predikat = "A"; predikatKet = "Sangat Baik (Sempurna)"; }
-            else if (finalScore >= 80) { predikat = "B"; predikatKet = "Baik"; }
-            else if (finalScore >= 75) { predikat = "C"; predikatKet = "Cukup (Tuntas KKM)"; }
+            else if (finalScore >= 85) { predikat = "B"; predikatKet = "Baik"; }
+            else if (finalScore >= 80) { predikat = "C"; predikatKet = "Cukup (Tuntas KKM)"; }
             else { predikat = "D"; predikatKet = "Perlu Bimbingan / Remedial"; }
 
             document.getElementById('resPredikat').innerText = predikat;
@@ -1551,8 +1551,8 @@
 
                 // Predicate distribution
                 if (score >= 90) predikatCounts.A++;
-                else if (score >= 80) predikatCounts.B++;
-                else if (score >= 75) predikatCounts.C++;
+                else if (score >= 85) predikatCounts.B++;
+                else if (score >= 80) predikatCounts.C++;
                 else predikatCounts.D++;
 
                 // Group by Kelas
